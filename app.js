@@ -37,6 +37,7 @@ const swaggerOptions = {
       version: '1.0.0',
       description: 'API documentation for RevTrust backend',
     },
+    supportedSubmitMethods: [],
     servers: [
       {
         // Put base URL (adjust if your config.server.route or host differs)
@@ -51,9 +52,25 @@ const swaggerOptions = {
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
 // Only expose docs in non-production (change as needed)
+const swaggerUiOptions = {
+  swaggerOptions: {
+    supportedSubmitMethods: [], // disable POST/PUT/DELETE/PATCH etc.
+  },
+};
 if (process.env.NODE_ENV !== 'production') {
-  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  app.use(
+    '/api-docs',
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerSpec, {
+      swaggerOptions: {
+        supportedSubmitMethods: [], // Disable "Try it out"
+        docExpansion: 'none', // optional: collapse all by default
+      },
+      customCss: '.swagger-ui .topbar { display: none }', // optional: hide top bar
+    })
+  );
 }
+
 // ---------- end Swagger setup ----------
 
 
