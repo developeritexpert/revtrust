@@ -10,6 +10,8 @@ const { expressLogger, expressErrorLogger, logger } = require('./src/utils/winst
 const endMw = require('express-end');
 const { isCelebrateError, errors } = require('celebrate');
 const fs = require('fs');
+const swaggerUi = require('swagger-ui-express');
+const swaggerJsdoc = require('swagger-jsdoc');
 // Routes
 const brandRoutes = require('./src/routes/brands/brand.route');
 
@@ -22,6 +24,38 @@ const mongoSanitize = require('mongo-sanitize');
 // const mongoSanitize = require('express-mongo-sanitize');
 const compression = require('express-compression');
 // const rateLimit = require('express-rate-limit');
+
+
+
+// ---------- Swagger / OpenAPI setup ----------
+const PORT = process.env.PORT || 4000;
+const swaggerOptions = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'RevTrust API',
+      version: '1.0.0',
+      description: 'API documentation for RevTrust backend',
+    },
+    servers: [
+      {
+        // Put base URL (adjust if your config.server.route or host differs)
+        url: `http://localhost:${PORT}`,
+        description: 'Local server',
+      },
+    ],
+  },
+  apis: ['./src/routes/**/*.js', './src/controllers/**/*.js'], // paths to files with JSDoc comments
+};
+
+const swaggerSpec = swaggerJsdoc(swaggerOptions);
+
+// Only expose docs in non-production (change as needed)
+if (process.env.NODE_ENV !== 'production') {
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+}
+// ---------- end Swagger setup ----------
+
 
 // This will create folder in root dir with provided name and if exist already nothing happen
 const uploadsFolder = './uploads';
