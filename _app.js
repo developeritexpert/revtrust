@@ -40,7 +40,6 @@ app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 app.use(`/${config.server.route}/brand`, brandRoutes);
 
-
 /** ::::::::::::::::::logs routes:::::::::::::::::: */
 app.use(`/${config.server.route}/logs`, logsRoutes);
 
@@ -81,7 +80,6 @@ app.use((err, req, res, next) => {
     message: err.message || 'Internal Server Error',
   });
 });
-
 
 module.exports = app;
 

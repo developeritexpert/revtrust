@@ -23,20 +23,21 @@ const mongoSanitize = require('mongo-sanitize');
 const compression = require('express-compression');
 // const rateLimit = require('express-rate-limit');
 
-
 // This will create folder in root dir with provided name and if exist already nothing happen
 const uploadsFolder = './uploads';
 if (!fs.existsSync(uploadsFolder)) {
-    fs.mkdirSync(uploadsFolder);
+  fs.mkdirSync(uploadsFolder);
 }
 
 // ----------------------------------Middleware Ended-------------------------------
 
 // Order of this route matters need to place this above store log middleware as it's returning empty result and we don't need to store record of this
 app.get('/' + config.server.route + '/pingServer', (req, res) => {
-    res.status(200).send('OK');
+  res.status(200).send('OK');
 });
-
+app.get('/health', (req, res) => {
+  return res.status(200).json({ message: 'OK' });
+});
 // Enable trust proxy to handle rate limits correctly with 'X-Forwarded-For' header
 app.set('trust proxy', true);
 
@@ -62,10 +63,10 @@ app.use(endMw);
 
 // // ----------------------------Middleware for reading raw Body as text use req.body
 app.use(
-    express.text({
-        type: 'text/plain',
-        limit: '50mb'
-    })
+  express.text({
+    type: 'text/plain',
+    limit: '50mb',
+  })
 );
 // ----------------------------------Middleware Ended-------------------------------
 
@@ -86,15 +87,15 @@ app.use(helmet());
 
 // Add Helmet configurations
 app.use(
-    helmet.crossOriginResourcePolicy({
-        policy: 'cross-origin'
-    })
+  helmet.crossOriginResourcePolicy({
+    policy: 'cross-origin',
+  })
 );
 
 app.use(
-    helmet.referrerPolicy({
-        policy: 'no-referrer'
-    })
+  helmet.referrerPolicy({
+    policy: 'no-referrer',
+  })
 );
 
 // sanitize request data
@@ -108,34 +109,34 @@ app.use(
 
 // app.use(xss(xssOptions));
 app.use((req, res, next) => {
-    if (req.body && typeof req.body === 'object') {
-        for (const key in req.body) {
-            if (typeof req.body[key] === 'string') {
-                req.body[key] = sanitizeHtml(req.body[key]);
-            }
-        }
+  if (req.body && typeof req.body === 'object') {
+    for (const key in req.body) {
+      if (typeof req.body[key] === 'string') {
+        req.body[key] = sanitizeHtml(req.body[key]);
+      }
     }
-    next();
+  }
+  next();
 });
 
 app.use((req, res, next) => {
-    if (req.body && typeof req.body === 'object') {
-        for (const key in req.body) {
-            req.body[key] = mongoSanitize(req.body[key]);
-        }
+  if (req.body && typeof req.body === 'object') {
+    for (const key in req.body) {
+      req.body[key] = mongoSanitize(req.body[key]);
     }
-    if (req.query && typeof req.query === 'object') {
-        for (const key in req.query) {
-            req.query[key] = mongoSanitize(req.query[key]);
-        }
+  }
+  if (req.query && typeof req.query === 'object') {
+    for (const key in req.query) {
+      req.query[key] = mongoSanitize(req.query[key]);
     }
-    if (req.params && typeof req.params === 'object') {
-        for (const key in req.params) {
-            req.params[key] = mongoSanitize(req.params[key]);
-        }
+  }
+  if (req.params && typeof req.params === 'object') {
+    for (const key in req.params) {
+      req.params[key] = mongoSanitize(req.params[key]);
     }
+  }
 
-    next();
+  next();
 });
 
 // app.use(mongoSanitize());
@@ -147,104 +148,102 @@ app.use(compression());
 
 // -----------------------------Middleware for storing API logs into DB
 app.use(function (req, res, next) {
-    // Do whatever you want this will execute when response is finished
-    res.once('end', function () {
-        createUserApiLog(req, res);
-    });
+  // Do whatever you want this will execute when response is finished
+  res.once('end', function () {
+    createUserApiLog(req, res);
+  });
 
-    // Save Response body
-    const oldSend = res.send;
-    res.send = function (data) {
-        res.locals.resBody = isJsonStr(data) ? JSON.parse(data) : data;
-        oldSend.apply(res, arguments);
-    };
-    next();
+  // Save Response body
+  const oldSend = res.send;
+  res.send = function (data) {
+    res.locals.resBody = isJsonStr(data) ? JSON.parse(data) : data;
+    oldSend.apply(res, arguments);
+  };
+  next();
 });
-
 
 // Routes which should handle requests
 app.use(`/${config.server.route}/brand`, brandRoutes);
 
-
-
 // ----------------------------Middleware for catching 404 and forward to error handler
 app.use((req, res, next) => {
-    const error = new Error(errorHandler.ERROR_404);
-    error.statusCode = 404;
-    next(error);
+  const error = new Error(errorHandler.ERROR_404);
+  error.statusCode = 404;
+  next(error);
 });
 
 process.on('unhandledRejection', (error) => {
-    logger.log({
-        level: 'error',
-        message: `Unhandled Rejection:, ${JSON.stringify({ error: error.message, stack: error.stack })}`
-    });
-    // Additional logic (like sending email notifications)
-    process.exit(1);
+  logger.log({
+    level: 'error',
+    message: `Unhandled Rejection:, ${JSON.stringify({ error: error.message, stack: error.stack })}`,
+  });
+  // Additional logic (like sending email notifications)
+  process.exit(1);
 });
 
 process.on('uncaughtException', (error) => {
-    logger.log({
-        level: 'error',
-        message: `Unhandled Exception:, ${JSON.stringify({ error: error.message, stack: error.stack })}`
-    }); // Additional logic (like shutting down the server gracefully)
-    process.exit(1);
+  logger.log({
+    level: 'error',
+    message: `Unhandled Exception:, ${JSON.stringify({ error: error.message, stack: error.stack })}`,
+  }); // Additional logic (like shutting down the server gracefully)
+  process.exit(1);
 });
 
 app.use(errors());
 
 // Error handler
 app.use((error, req, res, next) => {
-    if (res.headersSent) {
-        return next(error);
-    }
-    const sendErrorResponse = (status, message, desc, stack) => {
-        res.status(status).json({
-            result: message,
-            code: status,
-            desc,
-            stack: process.env.NODE_ENV === 'production' ? null : stack
-        });
-    };
-    // Celebrate validation errors
-    if (isCelebrateError(error)) {
-        const errorBody = error.details.get('body') || error.details.get('params') || error.details.get('headers');
-        const {
-            details: [errorDetails]
-        } = errorBody;
+  if (res.headersSent) {
+    return next(error);
+  }
+  const sendErrorResponse = (status, message, desc, stack) => {
+    res.status(status).json({
+      result: message,
+      code: status,
+      desc,
+      stack: process.env.NODE_ENV === 'production' ? null : stack,
+    });
+  };
+  // Celebrate validation errors
+  if (isCelebrateError(error)) {
+    const errorBody =
+      error.details.get('body') || error.details.get('params') || error.details.get('headers');
+    const {
+      details: [errorDetails],
+    } = errorBody;
 
-        sendErrorResponse(422, 'Validation error', errorDetails.message, error.stack);
+    sendErrorResponse(422, 'Validation error', errorDetails.message, error.stack);
+  }
+  // MongoDB errors
+  else if (error.name === 'MongoError') {
+    if (error.code === 11000) {
+      sendErrorResponse(409, 'Conflict', 'Duplicate key', error.stack);
+    } else {
+      sendErrorResponse(500, 'error', error.message || 'Internal Server Error', error.stack);
     }
-    // MongoDB errors
-    else if (error.name === 'MongoError') {
-        if (error.code === 11000) {
-            sendErrorResponse(409, 'Conflict', 'Duplicate key', error.stack);
-        } else {
-            sendErrorResponse(500, 'error', error.message || 'Internal Server Error', error.stack);
-        }
-    } else if (error.name === 'MongoServerError') {
-        if (error.code === 11000) {
-            sendErrorResponse(409, 'Conflict', 'Similar data already exists', error.stack);
-        } else {
-            sendErrorResponse(500, 'error', error.message || 'Internal Server Error', error.stack);
-        }
+  } else if (error.name === 'MongoServerError') {
+    if (error.code === 11000) {
+      sendErrorResponse(409, 'Conflict', 'Similar data already exists', error.stack);
+    } else {
+      sendErrorResponse(500, 'error', error.message || 'Internal Server Error', error.stack);
     }
-    // ObjectID errors
-    else if (error.name === 'CastError' && error.kind === '[ObjectId]') {
-        sendErrorResponse(400, 'Bad Request', 'Invalid ID', error.stack);
-    } else if (error.name === 'CastError' && error.kind === 'ObjectId') {
-        sendErrorResponse(400, 'Bad Request', 'Invalid ID', error.stack);
-    }
-    // Validation errors
-    else if (error.name === 'ValidationError') {
-        const messages = Object.values(error.errors).map((e) => e.message);
-        sendErrorResponse(422, 'error', 'Validation failed', error.stack, messages);
-    }
-    // Other errors
-    else {
-        const statusCode = error.statusCode || 500;
-        sendErrorResponse(statusCode, 'error', error.message || 'Internal Server Error', error.stack);
-    }
+  }
+  // ObjectID errors
+  else if (error.name === 'CastError' && error.kind === '[ObjectId]') {
+    sendErrorResponse(400, 'Bad Request', 'Invalid ID', error.stack);
+  } else if (error.name === 'CastError' && error.kind === 'ObjectId') {
+    sendErrorResponse(400, 'Bad Request', 'Invalid ID', error.stack);
+  }
+  // Validation errors
+  else if (error.name === 'ValidationError') {
+    const messages = Object.values(error.errors).map((e) => e.message);
+    sendErrorResponse(422, 'error', 'Validation failed', error.stack, messages);
+  }
+  // Other errors
+  else {
+    const statusCode = error.statusCode || 500;
+    sendErrorResponse(statusCode, 'error', error.message || 'Internal Server Error', error.stack);
+  }
 });
 
 // Best Tested place that store only uncaught errors

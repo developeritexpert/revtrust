@@ -29,20 +29,20 @@ brandRouter.get(API.INFO, (req, res) => {
           websiteUrl: 'https://example.com',
           description: 'Brand description here',
           status: 'active',
-          postcode: '12345'
-        }
+          postcode: '12345',
+        },
       },
       {
         method: 'GET',
         url: API.GET_ALL_BRANDS,
         description: 'Get all brands',
-        sampleBody: null
+        sampleBody: null,
       },
       {
         method: 'GET',
         url: API.GET_BRAND,
         description: 'Get a brand by ID',
-        sampleParams: { id: '68ff64022cb18485b23ea591' }
+        sampleParams: { id: '68ff64022cb18485b23ea591' },
       },
       {
         method: 'PUT',
@@ -51,27 +51,27 @@ brandRouter.get(API.INFO, (req, res) => {
         sampleParams: { id: '68ff64022cb18485b23ea591' },
         sampleBody: {
           name: 'Updated Brand',
-          status: 'inactive'
-        }
+          status: 'inactive',
+        },
       },
       {
         method: 'DELETE',
         url: API.DELETE_BRAND,
         description: 'Delete brand by ID',
-        sampleParams: { id: '68ff64022cb18485b23ea591' }
-      }
-    ]
+        sampleParams: { id: '68ff64022cb18485b23ea591' },
+      },
+    ],
   });
 });
-
 
 brandRouter.post(API.ADD_BRAND, celebrate(BrandSchema.addBrand), brandController.createBrand);
 brandRouter.get(API.GET_ALL_BRANDS, brandController.getAllBrands);
 brandRouter.get(API.GET_BRAND, celebrate(BrandSchema.idParam), brandController.getBrandById);
-brandRouter.put(API.UPDATE_BRAND, celebrate({ ...BrandSchema.idParam, ...BrandSchema.updateBrand }), brandController.updateBrand);
+brandRouter.put(
+  API.UPDATE_BRAND,
+  celebrate({ ...BrandSchema.idParam, ...BrandSchema.updateBrand }),
+  brandController.updateBrand
+);
 brandRouter.delete(API.DELETE_BRAND, celebrate(BrandSchema.idParam), brandController.deleteBrand);
-
-
-
 
 module.exports = brandRouter;

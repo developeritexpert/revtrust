@@ -25,3 +25,4 @@ use below cmd before pushing the code for use the same formet for whole project
 `npm run format:check` → checks for formatting issues.
 
 I am using `npm install --save-dev jest supertest` for testing
+use `npm test` for check test case , use `npm test` before push the code 

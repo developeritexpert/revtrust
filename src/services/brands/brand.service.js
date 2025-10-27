@@ -10,7 +10,9 @@ const createBrand = async (data) => {
       throw new ErrorHandler(409, 'Brand with this email or website already exists');
     }
     if (error.name === 'ValidationError') {
-      const messages = Object.values(error.errors).map((val) => val.message).join(', ');
+      const messages = Object.values(error.errors)
+        .map((val) => val.message)
+        .join(', ');
       throw new ErrorHandler(422, messages);
     }
     throw new ErrorHandler(error.statusCode || 500, error.message || 'Failed to create brand');
