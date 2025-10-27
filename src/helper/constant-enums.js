@@ -1,0 +1,22 @@
+const USER_ROLE = {
+  SUPER_ADMIN: 'SUPER_ADMIN',
+  USER: 'USER',
+  ADMIN: 'ADMIN',
+};
+const STATUS = {
+  PENDING: 'PENDING',
+  ACTIVE: 'ACTIVE',
+  PAUSED: 'PAUSED',
+  REJECTED: 'REJECTED',
+};
+
+const LANGUAGE = {
+  ENGLISH: 'ENGLISH',
+  SPANISH: 'SPANISH',
+};
+
+module.exports = {
+  USER_ROLE,
+  STATUS,
+  LANGUAGE,
+};
