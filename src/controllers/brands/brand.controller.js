@@ -2,6 +2,7 @@ const { wrapAsync } = require('../../utils/wrap-async');
 const { sendResponse } = require('../../utils/response');
 const BrandServices = require('../../services/brands/brand.service');
 const { ErrorHandler } = require('../../utils/error-handler');
+const { getPaginationParams, extractFilters } = require('../../utils/pagination');
 
 const createBrand = wrapAsync(async (req, res) => {
   const brandData = req.body;
@@ -10,7 +11,11 @@ const createBrand = wrapAsync(async (req, res) => {
 });
 
 const getAllBrands = wrapAsync(async (req, res) => {
-  const result = await BrandServices.getAllBrands();
+  const { page, limit } = getPaginationParams(req.query);
+  const allowedFilterKeys = ['_id', 'status', 'name','email','phoneNumber','websiteUrl','postcode'];
+  const filters = extractFilters(req.query, allowedFilterKeys);
+  const result = await BrandServices.getAllBrands(page, limit, filters);
+
   sendResponse(res, result, 'All brands fetched successfully', 200);
 });
 
