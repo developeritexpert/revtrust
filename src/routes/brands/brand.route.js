@@ -15,6 +15,7 @@ const API = {
 
 brandRouter.get(API.INFO, (req, res) => {
   res.json({
+    BackendURL: `${process.env.BACKEND_URL || 'http://localhost:4000'}`,
     baseUrl: '/api/brand',
     routes: [
       {
