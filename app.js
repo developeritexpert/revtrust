@@ -14,6 +14,7 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
 // Routes
 const brandRoutes = require('./src/routes/brands/brand.route');
+const productRoutes = require('./src/routes/products/product.route');
 
 const config = require('./src/config/config');
 const helmet = require('helmet');
@@ -41,8 +42,8 @@ const swaggerOptions = {
     servers: [
       {
         // Put base URL (adjust if your config.server.route or host differs)
-        url: `http://localhost:${PORT}`,
-        description: 'Local server',
+        url: `${config.server.backendLink}`,
+        description: `${config.server.nodeEnv} server`,
       },
     ],
   },
@@ -222,6 +223,7 @@ app.use(function (req, res, next) {
 
 // Routes which should handle requests
 app.use(`/${config.server.route}/brand`, brandRoutes);
+app.use(`/${config.server.route}/product`, productRoutes);
 
 // ----------------------------Middleware for catching 404 and forward to error handler
 app.use((req, res, next) => {
