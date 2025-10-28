@@ -39,6 +39,76 @@ const deleteBrand = wrapAsync(async (req, res) => {
   await BrandServices.deleteBrand(id);
   sendResponse(res, null, 'Brand deleted successfully', 200);
 });
+const getBrandApiInfo = (req, res) => {
+  const apiInfo = {
+    addBrand: {
+      method: 'POST',
+      path: '/add',
+      body: {
+        name: { type: 'string', required: true, min: 2, max: 100 },
+        email: { type: 'string', required: true, format: 'email' },
+        phoneNumber: { type: 'string', required: true },
+        logoUrl: { type: 'string', required: false, format: 'url' },
+        websiteUrl: { type: 'string', required: true, format: 'url' },
+        description: { type: 'string', required: false },
+        status: { type: 'string', required: false, allowed: ['ACTIVE', 'INACTIVE'], default: 'ACTIVE' },
+        postcode: { type: 'string', required: true },
+      },
+    },
+    getAllBrands: {
+      method: 'GET',
+      path: '/all',
+      query: {
+        page: { type: 'number', required: false, default: 1 },
+        limit: { type: 'number', required: false, default: 10 },
+        _id: { type: 'string', required: false },
+        name: { type: 'string', required: false },
+        email: { type: 'string', required: false },
+        phoneNumber: { type: 'string', required: false },
+        websiteUrl: { type: 'string', required: false },
+        postcode: { type: 'string', required: false },
+        status: { type: 'string', required: false, allowed: ['ACTIVE', 'INACTIVE'] },
+      },
+    },
+    getBrandById: {
+      method: 'GET',
+      path: '/:id',
+      params: {
+        id: { type: 'string', required: true, format: 'ObjectId' },
+      },
+    },
+    updateBrand: {
+      method: 'PUT',
+      path: '/update/:id',
+      params: {
+        id: { type: 'string', required: true, format: 'ObjectId' },
+      },
+      body: {
+        name: { type: 'string', required: false, min: 2, max: 100 },
+        email: { type: 'string', required: false, format: 'email' },
+        phoneNumber: { type: 'string', required: false },
+        logoUrl: { type: 'string', required: false, format: 'url' },
+        websiteUrl: { type: 'string', required: false, format: 'url' },
+        description: { type: 'string', required: false },
+        status: { type: 'string', required: false, allowed: ['ACTIVE', 'INACTIVE'] },
+        postcode: { type: 'string', required: false },
+      },
+    },
+    deleteBrand: {
+      method: 'DELETE',
+      path: '/delete/:id',
+      params: {
+        id: { type: 'string', required: true, format: 'ObjectId' },
+      },
+    },
+  };
+
+  res.status(200).json({
+    success: true,
+    message: 'Brand API metadata',
+    data: apiInfo,
+  });
+};
 
 module.exports = {
   createBrand,
@@ -46,4 +116,5 @@ module.exports = {
   getBrandById,
   updateBrand,
   deleteBrand,
+  getBrandApiInfo,
 };

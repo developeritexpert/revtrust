@@ -10,8 +10,7 @@ const { expressLogger, expressErrorLogger, logger } = require('./src/utils/winst
 const endMw = require('express-end');
 const { isCelebrateError, errors } = require('celebrate');
 const fs = require('fs');
-const swaggerUi = require('swagger-ui-express');
-const swaggerJsdoc = require('swagger-jsdoc');
+
 // Routes
 const brandRoutes = require('./src/routes/brands/brand.route');
 const productRoutes = require('./src/routes/products/product.route');
@@ -28,51 +27,7 @@ const compression = require('express-compression');
 
 
 
-// ---------- Swagger / OpenAPI setup ----------
 const PORT = process.env.PORT || 4000;
-const swaggerOptions = {
-  definition: {
-    openapi: '3.0.0',
-    info: {
-      title: 'RevTrust API',
-      version: '1.0.0',
-      description: 'API documentation for RevTrust backend',
-    },
-    supportedSubmitMethods: [],
-    servers: [
-      {
-        // Put base URL (adjust if your config.server.route or host differs)
-        url: `${config.server.backendLink}`,
-        description: `${config.server.nodeEnv} server`,
-      },
-    ],
-  },
-  apis: ['./src/routes/**/*.js', './src/controllers/**/*.js'], // paths to files with JSDoc comments
-};
-
-const swaggerSpec = swaggerJsdoc(swaggerOptions);
-
-// Only expose docs in non-production (change as needed)
-const swaggerUiOptions = {
-  swaggerOptions: {
-    supportedSubmitMethods: [], // disable POST/PUT/DELETE/PATCH etc.
-  },
-};
-
-  app.use(
-    `/${config.server.route}/docs`,
-    swaggerUi.serve,
-    swaggerUi.setup(swaggerSpec, {
-      swaggerOptions: {
-        supportedSubmitMethods: [], // Disable "Try it out"
-        docExpansion: 'none', // optional: collapse all by default
-      },
-      customCss: '.swagger-ui .topbar { display: none }', // optional: hide top bar
-    })
-  );
-
-
-// ---------- end Swagger setup ----------
 
 
 // This will create folder in root dir with provided name and if exist already nothing happen
