@@ -3,10 +3,15 @@ const CONSTANT_ENUM = require('../helper/constant-enums');
 
 const reviewSchema = new mongoose.Schema(
   {
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+    reviewTitle: {
+      type: String,
       required: true,
+      trim: true,
+    },
+    reviewBody: {
+      type: String,
+      required: true,
+      trim: true,
     },
     rating: {
       type: Number,
@@ -14,13 +19,25 @@ const reviewSchema = new mongoose.Schema(
       min: 1,
       max: 5,
     },
-    comment: {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    email: {
+      type: String,
+      required: true,
+      lowercase: true,
+      trim: true,
+    },
+    orderId: {
       type: String,
       trim: true,
-      required: false,
     },
-
-    // --- Polymorphic relation ---
+    phoneNumber: {
+      type: String,
+      trim: true,
+    },
     reviewType: {
       type: String,
       enum: ['Product', 'Brand'],
@@ -40,11 +57,10 @@ const reviewSchema = new mongoose.Schema(
         return this.reviewType === 'Brand';
       },
     },
-
     status: {
       type: String,
       enum: Object.values(CONSTANT_ENUM.REVIEW_STATUS),
-      default: CONSTANT_ENUM.REVIEW_STATUS.ACTIVE,
+      default: CONSTANT_ENUM.REVIEW_STATUS.INACTIVE, 
     },
   },
   {
@@ -52,24 +68,55 @@ const reviewSchema = new mongoose.Schema(
   }
 );
 
-// Optional: Automatically update Product or Brand review counts
-reviewSchema.post('save', async function (doc, next) {
-  try {
-    if (doc.reviewType === 'Product') {
-      const Product = mongoose.model('Product');
-      await Product.findByIdAndUpdate(doc.productId, {
-        $inc: { totalReviews: 1 },
-      });
-    } else if (doc.reviewType === 'Brand') {
-      const Brand = mongoose.model('Brand');
-      // Add totalReviews to Brand if needed
-      await Brand.findByIdAndUpdate(doc.brandId, {
-        $inc: { totalReviews: 1 },
-      });
-    }
-    next();
-  } catch (err) {
-    next(err);
+/**
+ * Helper: Adjust totalReviews count
+ */
+async function adjustReviewCount(doc, increment) {
+  if (!doc) return;
+
+  if (doc.reviewType === 'Product') {
+    const Product = mongoose.model('Product');
+    await Product.findByIdAndUpdate(doc.productId, {
+      $inc: { totalReviews: increment },
+    });
+  } else if (doc.reviewType === 'Brand') {
+    const Brand = mongoose.model('Brand');
+    await Brand.findByIdAndUpdate(doc.brandId, {
+      $inc: { totalReviews: increment },
+    });
+  }
+}
+
+/**
+ * Post-update hook:
+ * If review status changed from INACTIVE → ACTIVE, increase count.
+ * If ACTIVE → INACTIVE, decrease count.
+ */
+reviewSchema.post('findOneAndUpdate', async function (doc) {
+  if (!doc) return;
+
+  // Get the previous and new values of status
+  const update = this.getUpdate();
+  const newStatus = update.status;
+  const oldStatus = doc.status;
+
+  if (!newStatus || newStatus === oldStatus) return;
+
+  // Status changed
+  if (oldStatus === CONSTANT_ENUM.REVIEW_STATUS.INACTIVE && newStatus === CONSTANT_ENUM.REVIEW_STATUS.ACTIVE) {
+    await adjustReviewCount(doc, 1);
+  } else if (oldStatus === CONSTANT_ENUM.REVIEW_STATUS.ACTIVE && newStatus === CONSTANT_ENUM.REVIEW_STATUS.INACTIVE) {
+    await adjustReviewCount(doc, -1);
+  }
+});
+
+/**
+ * Post-remove hook:
+ * If review is deleted and was ACTIVE, decrement totalReviews.
+ */
+reviewSchema.post('findOneAndDelete', async function (doc) {
+  if (doc && doc.status === CONSTANT_ENUM.REVIEW_STATUS.ACTIVE) {
+    await adjustReviewCount(doc, -1);
   }
 });
 
