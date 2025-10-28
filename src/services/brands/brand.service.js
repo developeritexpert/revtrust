@@ -19,31 +19,18 @@ const createBrand = async (data) => {
   }
 };
 
-const getAllBrands = async (page = 1, limit = 10, filters = {}) => {
+const getAllBrands = async (page, limit, filters) => {
   const skip = (page - 1) * limit;
-
-  const query = Brand.find(filters);
-  if (limit > 0) {
-    query.skip(skip).limit(limit);
-  }
-
-  query.sort({ createdAt: -1 });
-
   const [brands, total] = await Promise.all([
-    query.exec(),
-    Brand.countDocuments(filters)
+    Brand.find(filters).sort({ createdAt: -1 }).skip(skip).limit(limit),
+    Brand.countDocuments(filters),
   ]);
-
   return {
     data: brands,
-    pagination: {
-      total,
-      page,
-      limit,
-      totalPages: limit > 0 ? Math.ceil(total / limit) : 1
-    }
+    pagination: { total, page, limit, totalPages: Math.ceil(total / limit) }
   };
 };
+
 
 const getBrandById = async (id) => {
   const brand = await Brand.findById(id);

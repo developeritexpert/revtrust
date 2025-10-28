@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const CONSTANT_ENUM = require('../helper/constant-enums');
 
 const brandSchema = new mongoose.Schema(
   {
@@ -35,8 +36,8 @@ const brandSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['active', 'inactive'],
-      default: 'active',
+      enum: Object.values(CONSTANT_ENUM.PRODUCT_STATUS),
+      default: CONSTANT_ENUM.PRODUCT_STATUS.ACTIVE,
     },
     postcode: {
       type: String,

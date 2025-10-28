@@ -57,9 +57,9 @@ const swaggerUiOptions = {
     supportedSubmitMethods: [], // disable POST/PUT/DELETE/PATCH etc.
   },
 };
-if (process.env.NODE_ENV !== 'production') {
+
   app.use(
-    '/api-docs',
+    `/${config.server.route}/docs`,
     swaggerUi.serve,
     swaggerUi.setup(swaggerSpec, {
       swaggerOptions: {
@@ -69,7 +69,7 @@ if (process.env.NODE_ENV !== 'production') {
       customCss: '.swagger-ui .topbar { display: none }', // optional: hide top bar
     })
   );
-}
+
 
 // ---------- end Swagger setup ----------
 
@@ -83,6 +83,13 @@ if (!fs.existsSync(uploadsFolder)) {
 // ----------------------------------Middleware Ended-------------------------------
 
 // Order of this route matters need to place this above store log middleware as it's returning empty result and we don't need to store record of this
+app.get('/', (req, res) => {
+  res.json({ message: 'Hey dev your api is running...' });
+});
+
+app.get(`/${config.server.route}/`, (req, res) => {
+  res.json({ message: 'Hey dev your api port is running...' });
+});
 app.get('/' + config.server.route + '/pingServer', (req, res) => {
   res.status(200).send('OK');
 });
