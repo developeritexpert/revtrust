@@ -9,7 +9,14 @@ const STATUS = {
   PAUSED: 'PAUSED',
   REJECTED: 'REJECTED',
 };
-
+const PRODUCT_STATUS = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+};
+const BRAND_STATUS = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+};
 const LANGUAGE = {
   ENGLISH: 'ENGLISH',
   SPANISH: 'SPANISH',
@@ -19,4 +26,5 @@ module.exports = {
   USER_ROLE,
   STATUS,
   LANGUAGE,
+  PRODUCT_STATUS,
 };

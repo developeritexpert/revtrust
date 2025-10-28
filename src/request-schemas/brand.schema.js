@@ -33,8 +33,8 @@ const addBrand = {
         'any.required': 'Website URL is required',
       }),
       description: Joi.string().trim().optional(),
-      status: Joi.string().valid('active', 'inactive').default('active').messages({
-        'any.only': 'Status must be either "active" or "inactive"',
+      status: Joi.string().valid('ACTIVE', 'INACTIVE').default('ACTIVE').messages({
+        'any.only': 'Status must be either "ACTIVE" or "INACTIVE"',
       }),
       postcode: Joi.string().trim().required().messages({
         'string.empty': 'Postcode is required',
@@ -62,8 +62,8 @@ const updateBrand = {
         'string.uri': 'Website URL must be a valid URL',
       }),
       description: Joi.string().trim().optional(),
-      status: Joi.string().valid('active', 'inactive').optional().messages({
-        'any.only': 'Status must be either "active" or "inactive"',
+      status: Joi.string().valid('ACTIVE', 'INACTIVE').optional().messages({
+        'any.only': 'Status must be either "ACTIVE" or "INACTIVE"',
       }),
       postcode: Joi.string().trim().optional(),
     })
