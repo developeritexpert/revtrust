@@ -25,14 +25,14 @@ const addBrand = {
         'string.empty': 'Phone number is required',
         'any.required': 'Phone number is required',
       }),
-      logoUrl: Joi.string().trim().uri().optional().messages({
+      logoUrl: Joi.string().trim().uri().allow('', null).optional().messages({
         'string.uri': 'Logo URL must be a valid URL',
       }),
       websiteUrl: Joi.string().trim().uri().required().messages({
         'string.uri': 'Website URL must be a valid URL',
         'any.required': 'Website URL is required',
       }),
-      description: Joi.string().trim().optional(),
+      description: Joi.string().trim().optional().allow('', null),
       status: Joi.string().valid('ACTIVE', 'INACTIVE').default('ACTIVE').messages({
         'any.only': 'Status must be either "ACTIVE" or "INACTIVE"',
       }),
@@ -55,13 +55,13 @@ const updateBrand = {
         'string.email': 'Email must be a valid email address',
       }),
       phoneNumber: Joi.string().trim().optional(),
-      logoUrl: Joi.string().trim().uri().optional().messages({
+      logoUrl: Joi.string().trim().uri().allow('', null).optional().messages({
         'string.uri': 'Logo URL must be a valid URL',
       }),
       websiteUrl: Joi.string().trim().uri().optional().messages({
         'string.uri': 'Website URL must be a valid URL',
       }),
-      description: Joi.string().trim().optional(),
+      description: Joi.string().trim().optional().allow('', null),
       status: Joi.string().valid('ACTIVE', 'INACTIVE').optional().messages({
         'any.only': 'Status must be either "ACTIVE" or "INACTIVE"',
       }),
