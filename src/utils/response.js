@@ -11,7 +11,7 @@ const sendResponse = (
   statusCode = 200,
   extra = {}
 ) => {
-  const response = { data, message, ...extra };
+  const response = { data, message, statusCode, ...extra };
   res.status(statusCode).json(response);
 };
 

@@ -216,7 +216,7 @@ app.use((error, req, res, next) => {
       result: message,
       code: status,
       desc,
-      stack: process.env.NODE_ENV === 'production' ? null : stack,
+      stack: process.env.NODE_ENV === 'prod' ? null : stack,
     });
   };
   // Celebrate validation errors

@@ -7,21 +7,21 @@ const brandSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      unique: true, 
     },
     email: {
       type: String,
       required: true,
       trim: true,
       lowercase: true,
+      unique: true, 
     },
     logoUrl: {
       type: String,
-      required: false,
       trim: true,
     },
     websiteUrl: {
       type: String,
-      required: false,
       trim: true,
     },
     phoneNumber: {
@@ -31,7 +31,6 @@ const brandSchema = new mongoose.Schema(
     },
     description: {
       type: String,
-      required: false,
       trim: true,
     },
     status: {
@@ -53,6 +52,9 @@ const brandSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+brandSchema.index({ name: 1 }, { unique: true });
+brandSchema.index({ email: 1 }, { unique: true });
 
 const Brand = mongoose.model('Brand', brandSchema);
 
