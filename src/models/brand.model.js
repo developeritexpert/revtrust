@@ -44,6 +44,10 @@ const brandSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    totalReviews: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,
