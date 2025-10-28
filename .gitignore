@@ -1,17 +1,35 @@
-# Node.js dependencies
-node_modules/
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+.sh
 
-# Logs
-*.log
-*.logs
+# testing
+/coverage
 
-# Environment variables
+# production
 .env
+/logs
 
-# Build output
-dist/
-build/
+# lock files
+package-lock.json
+yarn.lock
 
-# OS files
+/uploads
+
+# misc
 .DS_Store
-Thumbs.db
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.eslintcache
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+# Bolier.sh file ignored
+boiler.sh
+
+src/airtable_migrations/
+
