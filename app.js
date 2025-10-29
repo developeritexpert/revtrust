@@ -13,6 +13,7 @@ const { expressLogger, expressErrorLogger, logger } = require('./src/utils/winst
 const errorHandler = require('./src/utils/error-handler');
 const { createUserApiLog } = require('./src/models/log-model');
 const { sanitizeRequest } = require('./src/middleware/security');
+const path = require('path'); 
 
 // Routes
 const brandRoutes = require('./src/routes/brands/brand.route');
@@ -23,6 +24,7 @@ connect();
 
 // Ensure upload folder exists
 if (!fs.existsSync('./uploads')) fs.mkdirSync('./uploads');
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // --------------------------------------------------
 // Core Middleware

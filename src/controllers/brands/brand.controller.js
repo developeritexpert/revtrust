@@ -2,10 +2,16 @@ const { wrapAsync } = require('../../utils/wrap-async');
 const { sendResponse } = require('../../utils/response');
 const BrandServices = require('../../services/brands/brand.service');
 const { ErrorHandler } = require('../../utils/error-handler');
+const { getFilePath, getFileUrl } = require('../../utils/file-upload');
+
 const { getPaginationParams, extractFilters , buildBrandFilters } = require('../../utils/pagination');
 
 const createBrand = wrapAsync(async (req, res) => {
   const brandData = req.body;
+  if (req.file) {
+    const filePath = getFilePath(req.file);
+    brandData.logoUrl = getFileUrl(filePath, req);
+  }
   const result = await BrandServices.createBrand(brandData);
   sendResponse(res, result, 'Brand has been created successfully', 201);
 });
