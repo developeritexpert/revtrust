@@ -18,6 +18,7 @@ const path = require('path');
 // Routes
 const brandRoutes = require('./src/routes/brands/brand.route');
 const productRoutes = require('./src/routes/products/product.route');
+const reviewRoutes = require('./src/routes/reviews/review.route');
 
 const app = express();
 connect();
@@ -66,6 +67,7 @@ app.use((req, res, next) => {
 // Routes
 app.use(`/${config.server.route}/brand`, brandRoutes);
 app.use(`/${config.server.route}/product`, productRoutes);
+app.use(`/${config.server.route}/review`, reviewRoutes);
 
 // --------------------------------------------------
 // 404 handler
