@@ -19,7 +19,7 @@ brandRouter.get(API.INFO, brandController.getBrandApiInfo);
 
 brandRouter.post(
   API.ADD_BRAND,
-  uploadBrand.single('image'),
+  uploadBrand.single('logoUrl'),
   celebrate(BrandSchema.addBrand),
   brandController.createBrand
 );
@@ -30,7 +30,7 @@ brandRouter.get(API.GET_BRAND, celebrate(BrandSchema.idParam), brandController.g
 
 brandRouter.put(
   API.UPDATE_BRAND,
-  uploadBrand.single('image'),
+  uploadBrand.single('logoUrl'),
   celebrate({ ...BrandSchema.idParam, ...BrandSchema.updateBrand }),
   brandController.updateBrand
 );
