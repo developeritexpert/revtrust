@@ -68,6 +68,32 @@ const buildProductFilters = (query) => {
 
   return filters;
 };
+const buildReviewFilters = (queryParams) => {
+  const filters = {};
+
+  const textFields = ['reviewTitle', 'reviewBody', 'name', 'email', 'phoneNumber'];
+  for (const key of textFields) {
+    if (queryParams[key]) {
+      filters[key] = { $regex: queryParams[key], $options: 'i' };
+    }
+  }
+
+  if (queryParams.status) filters.status = queryParams.status;
+  if (queryParams._id) filters._id = queryParams._id;
+  if (queryParams.reviewType) filters.reviewType = queryParams.reviewType;
+  if (queryParams.productId) filters.productId = queryParams.productId;
+  if (queryParams.brandId) filters.brandId = queryParams.brandId;
+
+  if (queryParams.rating) filters.rating = Number(queryParams.rating);
+
+  if (queryParams.minRating || queryParams.maxRating) {
+    filters.rating = {};
+    if (queryParams.minRating) filters.rating.$gte = Number(queryParams.minRating);
+    if (queryParams.maxRating) filters.rating.$lte = Number(queryParams.maxRating);
+  }
+
+  return filters;
+};
 
 module.exports = {
   getPaginationParams,
@@ -75,4 +101,5 @@ module.exports = {
   extractFilters,
   buildBrandFilters,
   buildProductFilters,
+  buildReviewFilters,
 };

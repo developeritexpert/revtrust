@@ -3,6 +3,8 @@ const productRouter = express.Router();
 const productController = require('../../controllers/products/product.controller');
 const ProductSchema = require('../../request-schemas/product.schema');
 const { celebrate } = require('celebrate');
+const createUpload = require('../../config/multer.config');
+const uploadProduct = createUpload('products');
 
 const API = {
   ADD_PRODUCT: '/add',
