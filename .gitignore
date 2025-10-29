@@ -16,7 +16,7 @@ package-lock.json
 yarn.lock
 
 /uploads
-
+.uploads
 # misc
 .DS_Store
 .env.local

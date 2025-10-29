@@ -26,7 +26,7 @@ const brandSchema = new mongoose.Schema(
     },
     phoneNumber: {
       type: String,
-      required: true,
+      required: false,
       trim: true,
     },
     description: {
@@ -44,6 +44,10 @@ const brandSchema = new mongoose.Schema(
       trim: true,
     },
     totalReviews: {
+      type: Number,
+      default: 0,
+    },
+    totalRating: {
       type: Number,
       default: 0,
     },

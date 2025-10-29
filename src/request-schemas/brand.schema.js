@@ -21,13 +21,7 @@ const addBrand = {
         'string.email': 'Email must be a valid email address',
         'any.required': 'Email is required',
       }),
-      phoneNumber: Joi.string().trim().required().messages({
-        'string.empty': 'Phone number is required',
-        'any.required': 'Phone number is required',
-      }),
-      logoUrl: Joi.string().trim().uri().allow('', null).optional().messages({
-        'string.uri': 'Logo URL must be a valid URL',
-      }),
+      phoneNumber: Joi.string().trim().allow('', null).optional(),
       websiteUrl: Joi.string().trim().uri().required().messages({
         'string.uri': 'Website URL must be a valid URL',
         'any.required': 'Website URL is required',
@@ -54,10 +48,7 @@ const updateBrand = {
       email: Joi.string().trim().email().optional().messages({
         'string.email': 'Email must be a valid email address',
       }),
-      phoneNumber: Joi.string().trim().optional(),
-      logoUrl: Joi.string().trim().uri().allow('', null).optional().messages({
-        'string.uri': 'Logo URL must be a valid URL',
-      }),
+      phoneNumber: Joi.string().trim().allow('', null).optional(),
       websiteUrl: Joi.string().trim().uri().optional().messages({
         'string.uri': 'Website URL must be a valid URL',
       }),
