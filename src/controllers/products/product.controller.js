@@ -3,9 +3,11 @@ const { sendResponse } = require('../../utils/response');
 const ProductServices = require('../../services/products/product.service');
 const { ErrorHandler } = require('../../utils/error-handler');
 const { getPaginationParams, buildProductFilters } = require('../../utils/pagination');
+const getImageUrl = (req) => req.file?.cloudinaryUrl;
 
 const createProduct = wrapAsync(async (req, res) => {
   const productData = req.body;
+  productData.image = getImageUrl(req); 
   const result = await ProductServices.createProduct(productData);
   sendResponse(res, result, 'Product has been created successfully', 201);
 });
@@ -27,6 +29,7 @@ const getProductById = wrapAsync(async (req, res) => {
 const updateProduct = wrapAsync(async (req, res) => {
   const { id } = req.params;
   const updateData = req.body;
+  updateData.image = getImageUrl(req);
   const result = await ProductServices.updateProduct(id, updateData);
   sendResponse(res, result, 'Product updated successfully', 200);
 });

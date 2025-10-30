@@ -3,8 +3,7 @@ const productRouter = express.Router();
 const productController = require('../../controllers/products/product.controller');
 const ProductSchema = require('../../request-schemas/product.schema');
 const { celebrate } = require('celebrate');
-const createUpload = require('../../config/multer.config');
-const uploadProduct = createUpload('products');
+const cloudinaryUpload = require('../../config/cloudinaryUpload');
 
 const API = {
   ADD_PRODUCT: '/add',
@@ -14,7 +13,12 @@ const API = {
   DELETE_PRODUCT: '/delete/:id',
 };
 
-productRouter.post(API.ADD_PRODUCT, celebrate(ProductSchema.addProduct), productController.createProduct);
+productRouter.post(
+  API.ADD_PRODUCT,
+  cloudinaryUpload('image', 'products'),
+  celebrate(ProductSchema.addProduct), 
+  productController.createProduct
+);
 
 productRouter.get(API.GET_ALL_PRODUCTS, productController.getAllProducts);
 
@@ -22,6 +26,7 @@ productRouter.get(API.GET_PRODUCT, celebrate(ProductSchema.idParam), productCont
 
 productRouter.put(
   API.UPDATE_PRODUCT,
+  cloudinaryUpload('image', 'products'),
   celebrate({ ...ProductSchema.idParam, ...ProductSchema.updateProduct }),
   productController.updateProduct
 );
