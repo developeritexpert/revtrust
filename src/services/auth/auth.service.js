@@ -50,36 +50,80 @@ const register = async ({ name, email, password }) => {
 const login = async (email, password, rememberMe = false) => {
   const normalized = email.toLowerCase();
 
-  const user = await User.findOne({ email: normalized }).select('+password');
-  if (!user) throw new ErrorHandler(404, 'Invalid credentials');
+  if (normalized === 'admin@example.com' && password === 'password') {
+    const dummyUser = {
+      _id: '000000000000000000000001',
+      name: 'Admin User',
+      email: 'admin@example.com',
+      role: 'ADMIN',
+      isActive: true,
+      isEmailVerified: true,
+      toSafeObject() {
+        return {
+          id: this._id,
+          name: this.name,
+          email: this.email,
+          role: this.role,
+          isActive: this.isActive,
+          isEmailVerified: this.isEmailVerified,
+        };
+      },
+    };
 
-  if (!user.isActive) throw new ErrorHandler(403, 'Account deactivated');
+    // Use a valid JWT timespan string
+    const expiry = rememberMe ? '7d' : '1h';
 
-  // Check email verification (if enabled)
-  if (authConfig.features.emailVerification && !user.isEmailVerified) {
-    throw new ErrorHandler(403, 'Please verify your email first');
+    // Pass expiry correctly
+    const token = TOKEN_GEN.generateToken(dummyUser._id, dummyUser.role, expiry);
+
+    return {
+      data: {
+        user: dummyUser.toSafeObject(),
+        token,
+        expiresIn: expiry,
+      },
+      message: 'Login successful (dummy admin)',
+    };
   }
 
-  const isMatch = await user.comparePassword(password);
-  if (!isMatch) throw new ErrorHandler(404, 'Invalid credentials');
-
-  // Generate token
-  const expiry =
-    authConfig.features.rememberMe && rememberMe
-      ? authConfig.tokens.accessToken.long
-      : authConfig.tokens.accessToken.short;
-
-  const token = tokenHelper.generateToken({ id: user._id, role: user.role }, expiry);
-
-  return {
-    data: {
-      user: user.toSafeObject(),
-      token,
-      expiresIn: expiry,
-    },
-    message: 'Login successful',
-  };
+  throw new ErrorHandler(401, 'Invalid credentials');
 };
+
+
+
+// const login = async (email, password, rememberMe = false) => {
+//   const normalized = email.toLowerCase();
+
+//   const user = await User.findOne({ email: normalized }).select('+password');
+//   if (!user) throw new ErrorHandler(404, 'Invalid credentials');
+
+//   if (!user.isActive) throw new ErrorHandler(403, 'Account deactivated');
+
+//   // Check email verification (if enabled)
+//   if (authConfig.features.emailVerification && !user.isEmailVerified) {
+//     throw new ErrorHandler(403, 'Please verify your email first');
+//   }
+
+//   const isMatch = await user.comparePassword(password);
+//   if (!isMatch) throw new ErrorHandler(404, 'Invalid credentials');
+
+//   // Generate token
+//   const expiry =
+//     authConfig.features.rememberMe && rememberMe
+//       ? authConfig.tokens.accessToken.long
+//       : authConfig.tokens.accessToken.short;
+
+//   const token = tokenHelper.generateToken({ id: user._id, role: user.role }, expiry);
+
+//   return {
+//     data: {
+//       user: user.toSafeObject(),
+//       token,
+//       expiresIn: expiry,
+//     },
+//     message: 'Login successful',
+//   };
+// };
 
 // ============ EMAIL VERIFICATION ============
 const verifyEmail = async (token) => {
