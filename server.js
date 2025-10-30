@@ -1,79 +1,96 @@
+// --------------------------------------------------
 // Load environment variables
+// --------------------------------------------------
 const dotenv = require('dotenv').config();
 if (dotenv.error) {
-  console.error('Warning: Unable to load .env file. Defaulting to environment variables.');
+  console.warn('Warning: Unable to load .env file. Using system environment variables.');
 }
 
+// --------------------------------------------------
+// Core Dependencies
+// --------------------------------------------------
 const http = require('http');
+const os = require('os');
 const cluster = require('cluster');
-const app = require('./app'); // Ensure this path is correctly set
-const config = require('./src/config/config'); // Ensure this path is correctly set
-const numCPUs = require('os').cpus().length;
-const cron = require('node-cron'); // Include node-cron
+const cron = require('node-cron');
 
-// Configurable number of clusters, defaulting to number of CPUs
-const numClusters = parseInt(config.clusterSize || numCPUs);
+const app = require('./app');
+const config = require('./src/config/config');
+const { logger } = require('./src/utils/winston-logger'); // Use your logger
 
-const port = config.server.port;
-console.log(`Starting server on port ${port}...`);
-if (cluster.isMaster) {
-  console.log(`Master ${process.pid} is setting up ${numClusters} workers...`);
+// --------------------------------------------------
+// Server Configuration
+// --------------------------------------------------
+const numCPUs = os.cpus().length;
+const numClusters = parseInt(config.clusterSize || numCPUs, 10);
+const port = config.server.port || 4000;
 
-  for (let i = 0; i < numClusters; i++) {
-    cluster.fork();
-  }
+// --------------------------------------------------
+// Cluster Master Setup
+// --------------------------------------------------
+if (cluster.isPrimary) {
+  console.log(`Master ${process.pid} is starting ${numClusters} workers on port ${port}...`);
 
-  cluster.on('online', function (worker) {
-    console.log(`Worker ${worker.process.pid} is online.`);
+  for (let i = 0; i < numClusters; i++) cluster.fork();
+
+  cluster.on('online', (worker) => {
+    console.log(`Worker ${worker.process.pid} is online`);
   });
 
   cluster.on('exit', (worker, code, signal) => {
-    console.error(`Worker ${worker.process.pid} died with code ${code} and signal ${signal}`);
-    handleWorkerExit(worker, code, signal);
+    logger.error(
+      `Worker ${worker.process.pid} exited (code: ${code}, signal: ${signal}). Restarting...`
+    );
+    cluster.fork();
   });
-} else {
-  // if (cluster.worker.id === 1) {
-  //     // This worker will run the cron jobs
-  //     setupCronJobs();
-  // }
 
+} else {
+  // --------------------------------------------------
+  // Worker Process Setup
+  // --------------------------------------------------
   const server = http.createServer(app);
 
   server.listen(port, () => {
+    const { address, port: boundPort } = server.address();
     console.log(
-      `Worker ${cluster.worker.id} running on http://${server.address().address}:${server.address().port} at ${new Date().toString()} on ${config.server.nodeEnv} environment with process ID ${
-        cluster.worker.process.pid
-      }`
+      `Worker ${cluster.worker.id} (PID: ${process.pid}) running on http://${address || 'localhost'}:${boundPort} in ${config.server.nodeEnv} mode`
     );
   });
 
   server.on('error', (err) => {
-    handleServerError(err, server);
+    logger.error(`Server error: ${err.message}`, { stack: err.stack });
+    gracefulShutdown(server);
   });
+
+  // --------------------------------------------------
+  // Cron Jobs (Optional)
+  // --------------------------------------------------
+  if (cluster.worker.id === 1) {
+    setupCronJobs();
+  }
+
+  // --------------------------------------------------
+  // Graceful Shutdown Handling
+  // --------------------------------------------------
+  process.on('SIGTERM', () => gracefulShutdown(server));
+  process.on('SIGINT', () => gracefulShutdown(server));
 }
 
-function handleWorkerExit(worker, code, signal) {
-  console.error(
-    `Handling worker exit. Worker ID: ${worker.id}, PID: ${worker.process.pid}, Exit Code: ${code}, Signal: ${signal}`
-  );
-  cluster.fork(); // Restart the worker
-}
-
-function handleServerError(err, server) {
-  console.error(`Handling server error: ${err.message}`);
+// --------------------------------------------------
+// Helper Functions
+// --------------------------------------------------
+function gracefulShutdown(server) {
+  console.log('Shutting down gracefully...');
   server.close(() => {
-    console.log('Server shut down due to an error.');
-    /* eslint-disable */
-    process.exit(1);
-    /* eslint-disable */
+    console.log('Server closed. Exiting process.');
+    process.exit(0);
   });
 }
 
 function setupCronJobs() {
   cron.schedule('* * * * *', () => {
-    console.log('Cron job executed every minute');
-    // Your cron job logic here
+    console.log('Cron job executed (every minute)');
+    // Add your scheduled job logic here
   });
-
-  console.log('Cron jobs set up by worker ' + cluster.worker.id);
+  console.log(`Cron jobs initialized by worker ${cluster.worker.id}`);
 }
