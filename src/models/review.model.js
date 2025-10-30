@@ -103,6 +103,13 @@ async function adjustReviewCount(doc, increment) {
   }
 }
 
+reviewSchema.post('save', async function(doc) {
+  if (!doc) return;
+  if (doc.status === CONSTANT_ENUM.REVIEW_STATUS.ACTIVE) {
+    await adjustReviewCount(doc, 1);
+  }
+});
+
 /**
  * Post-update hook:
  * If review status changed from INACTIVE → ACTIVE, increase count.

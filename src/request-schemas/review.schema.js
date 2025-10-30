@@ -50,10 +50,16 @@ const addReview = {
         'string.email': 'Email must be a valid email address',
         'string.empty': 'Email is required',
       }),
-      reviewType: Joi.string().valid('Product', 'Brand').required().messages({
+      reviewType: Joi.string()
+      .trim()
+      .valid('Product', 'Brand')
+      .insensitive()
+      .required()
+      .messages({
         'any.only': 'Review type must be either "Product" or "Brand"',
         'any.required': 'Review type is required',
       }),
+
       privacy_policy: Joi.boolean().required(),
       term_and_condition: Joi.boolean().required(),
 
@@ -82,7 +88,15 @@ const updateReview = {
       issue_handling_rating: Joi.number().min(0).max(5).optional().default(0),
       name: Joi.string().trim().optional(),
       email: Joi.string().trim().email().optional(),
-      reviewType: Joi.string().valid('Product', 'Brand').required(),
+      reviewType: Joi.string()
+      .trim()
+      .valid('Product', 'Brand')
+      .insensitive()
+      .required()
+      .messages({
+        'any.only': 'Review type must be either "Product" or "Brand"',
+        'any.required': 'Review type is required',
+      }),
       orderId: Joi.string().trim().optional().allow('', null),
       phoneNumber: Joi.string().trim().optional().allow('', null),
       productId: Joi.string()
