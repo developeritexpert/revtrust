@@ -18,10 +18,30 @@ const addReview = {
       reviewBody: Joi.string().trim().required().messages({
         'string.empty': 'Review body is required',
       }),
-      rating: Joi.number().min(1).max(5).required().messages({
-        'number.base': 'Rating must be a number',
-        'number.min': 'Rating must be at least 1',
-        'number.max': 'Rating cannot be more than 5',
+      product_store_rating: Joi.number().min(0).max(5).required().messages({
+        'number.base': 'Store rating must be a number',
+        'number.min': 'Store rating must be at least 0',
+        'number.max': 'Store rating cannot be more than 5',
+      }),
+      seller_rating: Joi.number().min(0).max(5).required().messages({
+        'number.base': 'Seller Rating must be a number',
+        'number.min': 'Seller Rating must be at least 0',
+        'number.max': 'Seller Rating cannot be more than 5',
+      }),
+      product_quality_rating: Joi.number().min(0).max(5).required().messages({
+        'number.base': 'Quality Rating must be a number',
+        'number.min': 'Quality Rating must be at least 0',
+        'number.max': 'Quality Rating cannot be more than 5',
+      }),
+      product_price_rating: Joi.number().min(0).max(5).required().messages({
+        'number.base': 'Price Rating must be a number',
+        'number.min': 'Price Rating must be at least 0',
+        'number.max': 'Price Rating cannot be more than 5',
+      }),
+      issue_handling_rating: Joi.number().min(0).max(5).optional().default(0).messages({
+        'number.base': 'Issue handling rating must be a number',
+        'number.min': 'Issue handling rating must be at least 0',
+        'number.max': 'Issue handling rating cannot be more than 5',
       }),
       name: Joi.string().trim().required().messages({
         'string.empty': 'Name is required',
@@ -33,6 +53,14 @@ const addReview = {
       reviewType: Joi.string().valid('Product', 'Brand').required().messages({
         'any.only': 'Review type must be either "Product" or "Brand"',
         'any.required': 'Review type is required',
+      }),
+      privacy_policy: Joi.boolean().valid(true).required().messages({
+        'any.only': 'Privacy policy must be accepted',
+        'any.required': 'Privacy policy is required',
+      }),
+      term_and_condition: Joi.boolean().valid(true).required().messages({
+        'any.only': 'Terms and conditions must be accepted',
+        'any.required': 'Terms and conditions are required',
       }),
       orderId: Joi.string().trim().optional().allow('', null),
       phoneNumber: Joi.string().trim().optional().allow('', null),
@@ -52,7 +80,11 @@ const updateReview = {
     .keys({
       reviewTitle: Joi.string().trim().min(2).max(200).optional(),
       reviewBody: Joi.string().trim().optional().allow('', null),
-      rating: Joi.number().min(1).max(5).optional(),
+      product_store_rating: Joi.number().min(0).max(5).optional(),
+      seller_rating: Joi.number().min(0).max(5).optional(),
+      product_quality_rating: Joi.number().min(0).max(5).optional(),
+      product_price_rating: Joi.number().min(0).max(5).optional(),
+      issue_handling_rating: Joi.number().min(0).max(5).optional().default(0),
       name: Joi.string().trim().optional(),
       email: Joi.string().trim().email().optional(),
       reviewType: Joi.string().valid('Product', 'Brand').required(),
@@ -65,6 +97,13 @@ const updateReview = {
         .custom(objectIdValidation)
         .when('reviewType', { is: 'Brand', then: Joi.required().messages({ 'any.required': 'Brand ID is required for brand reviews' }) }),
       status: Joi.string().valid('ACTIVE', 'INACTIVE').optional(),
+      privacy_policy: Joi.boolean().valid(true).optional().messages({
+        'any.only': 'Privacy policy must be accepted',
+      }),
+      term_and_condition: Joi.boolean().valid(true).optional().messages({
+        'any.only': 'Terms and conditions must be accepted',
+      }),
+
     })
     .required(),
 };

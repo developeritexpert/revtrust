@@ -13,12 +13,6 @@ const reviewSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    rating: {
-      type: Number,
-      required: true,
-      min: 1,
-      max: 5,
-    },
     name: {
       type: String,
       required: true,
@@ -62,6 +56,28 @@ const reviewSchema = new mongoose.Schema(
       enum: Object.values(CONSTANT_ENUM.REVIEW_STATUS),
       default: CONSTANT_ENUM.REVIEW_STATUS.INACTIVE, 
     },
+    product_store_rating: { type: Number, required: true, min: 0, max: 5 },
+    seller_rating: { type: Number, required: true, min: 0, max: 5 },
+    product_quality_rating: { type: Number, required: true, min: 0, max: 5 },
+    product_price_rating: { type: Number, required: true, min: 0, max: 5 },
+    issue_handling_rating: { type: Number, required: false, min: 0, max: 5 },
+    privacy_policy: {
+      type: Boolean,
+      required: true,
+      validate: {
+        validator: (v) => v === true,
+        message: 'Privacy policy must be accepted',
+      },
+    },
+    term_and_condition: {
+      type: Boolean,
+      required: true,
+      validate: {
+        validator: (v) => v === true,
+        message: 'Terms and conditions must be accepted',
+      },
+    },
+
   },
   {
     timestamps: true,
