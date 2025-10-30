@@ -5,21 +5,20 @@ const { ErrorHandler } = require('../../utils/error-handler');
 const { getFilePath, getFileUrl } = require('../../utils/file-upload');
 
 const { getPaginationParams, extractFilters , buildBrandFilters } = require('../../utils/pagination');
+const getLogoUrl = (req) => req.file?.cloudinaryUrl;
 
 const createBrand = wrapAsync(async (req, res) => {
   const brandData = req.body;
-  if (req.file) {
-    const filePath = getFilePath(req.file);
-    brandData.logoUrl = getFileUrl(filePath, req);
-  }
+  
+  brandData.logoUrl = getLogoUrl(req); 
+
   const result = await BrandServices.createBrand(brandData);
   sendResponse(res, result, 'Brand has been created successfully', 201);
 });
 
+
 const getAllBrands = wrapAsync(async (req, res) => {
   const { page, limit } = getPaginationParams(req.query);
-  // const allowedFilterKeys = ['_id', 'status', 'name','email','phoneNumber','websiteUrl','postcode'];
-  // const filters = extractFilters(req.query, allowedFilterKeys);
   const filters = buildBrandFilters(req.query);
 
   const result = await BrandServices.getAllBrands(page, limit, filters);
@@ -36,6 +35,7 @@ const getBrandById = wrapAsync(async (req, res) => {
 const updateBrand = wrapAsync(async (req, res) => {
   const { id } = req.params;
   const updateData = req.body;
+  updateData.logoUrl = getLogoUrl(req); 
   const result = await BrandServices.updateBrand(id, updateData);
   sendResponse(res, result, 'Brand updated successfully', 200);
 });
