@@ -66,7 +66,8 @@ if (cluster.isPrimary) {
   // Cron Jobs (Optional)
   // --------------------------------------------------
   if (cluster.worker.id === 1) {
-    setupCronJobs();
+    // uncomment the line to enable cron jobs on worker 1
+    // setupCronJobs();
   }
 
   // --------------------------------------------------
