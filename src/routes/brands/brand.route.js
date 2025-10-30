@@ -5,7 +5,7 @@ const BrandSchema = require('../../request-schemas/brand.schema');
 const { celebrate } = require('celebrate');
 const createUpload = require('../../config/multer.config');
 const uploadBrand = createUpload('brands');
-
+const cloudinaryUpload = require('../../config/cloudinaryUpload');
 const API = {
   INFO: '/info',
   ADD_BRAND: '/add',
@@ -17,9 +17,16 @@ const API = {
 
 brandRouter.get(API.INFO, brandController.getBrandApiInfo);
 
+// brandRouter.post(
+//   API.ADD_BRAND,
+//   // uploadBrand.single('logoUrl'),
+//   cloudinaryUpload('logoUrl'),
+//   celebrate(BrandSchema.addBrand),
+//   brandController.createBrand
+// );
 brandRouter.post(
   API.ADD_BRAND,
-  uploadBrand.single('logoUrl'),
+  cloudinaryUpload('logoUrl', 'brands'),
   celebrate(BrandSchema.addBrand),
   brandController.createBrand
 );
@@ -30,7 +37,7 @@ brandRouter.get(API.GET_BRAND, celebrate(BrandSchema.idParam), brandController.g
 
 brandRouter.put(
   API.UPDATE_BRAND,
-  uploadBrand.single('logoUrl'),
+  cloudinaryUpload('logoUrl', 'brands'),
   celebrate({ ...BrandSchema.idParam, ...BrandSchema.updateBrand }),
   brandController.updateBrand
 );
