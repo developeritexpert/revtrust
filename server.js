@@ -3,7 +3,7 @@
 // --------------------------------------------------
 const dotenv = require('dotenv').config();
 if (dotenv.error) {
-  console.warn('⚠️  Warning: Unable to load .env file. Using system environment variables.');
+  console.warn('Warning: Unable to load .env file. Using system environment variables.');
 }
 
 // --------------------------------------------------
