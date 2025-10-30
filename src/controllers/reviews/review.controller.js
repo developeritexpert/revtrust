@@ -6,7 +6,7 @@ const { getPaginationParams, buildReviewFilters } = require('../../utils/paginat
 const createReview = wrapAsync(async (req, res) => {
   const reviewData = req.body;
   const result = await ReviewServices.createReview(reviewData);
-  sendResponse(res, result, 'Review has been created successfully', 201);
+  sendResponse(res, result, 'Review has been added successfully', 201);
 });
 
 const getAllReviews = wrapAsync(async (req, res) => {
@@ -27,7 +27,7 @@ const updateReview = wrapAsync(async (req, res) => {
   const { id } = req.params;
   const updateData = req.body;
   const result = await ReviewServices.updateReview(id, updateData);
-  sendResponse(res, result, 'Review updated successfully', 200);
+  sendResponse(res, result, 'Review has been updated successfully', 200);
 });
 
 const deleteReview = wrapAsync(async (req, res) => {
