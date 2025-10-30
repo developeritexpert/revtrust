@@ -54,14 +54,9 @@ const addReview = {
         'any.only': 'Review type must be either "Product" or "Brand"',
         'any.required': 'Review type is required',
       }),
-      privacy_policy: Joi.boolean().valid(true).required().messages({
-        'any.only': 'Privacy policy must be accepted',
-        'any.required': 'Privacy policy is required',
-      }),
-      term_and_condition: Joi.boolean().valid(true).required().messages({
-        'any.only': 'Terms and conditions must be accepted',
-        'any.required': 'Terms and conditions are required',
-      }),
+      privacy_policy: Joi.boolean().required(),
+      term_and_condition: Joi.boolean().required(),
+
       orderId: Joi.string().trim().optional().allow('', null),
       phoneNumber: Joi.string().trim().optional().allow('', null),
       productId: Joi.string()
@@ -97,12 +92,8 @@ const updateReview = {
         .custom(objectIdValidation)
         .when('reviewType', { is: 'Brand', then: Joi.required().messages({ 'any.required': 'Brand ID is required for brand reviews' }) }),
       status: Joi.string().valid('ACTIVE', 'INACTIVE').optional(),
-      privacy_policy: Joi.boolean().valid(true).optional().messages({
-        'any.only': 'Privacy policy must be accepted',
-      }),
-      term_and_condition: Joi.boolean().valid(true).optional().messages({
-        'any.only': 'Terms and conditions must be accepted',
-      }),
+      privacy_policy: Joi.boolean().required(),
+      term_and_condition: Joi.boolean().required(),
 
     })
     .required(),
