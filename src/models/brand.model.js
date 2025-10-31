@@ -54,8 +54,16 @@ const brandSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   }
+
 );
+
+brandSchema.virtual('averageRating').get(function () {
+  if (!this.totalReviews || this.totalReviews === 0) return 0;
+  return Math.round((this.totalRating / this.totalReviews) * 10) / 10;
+});
 
 brandSchema.index({ name: 1 }, { unique: true });
 brandSchema.index({ email: 1 }, { unique: true });

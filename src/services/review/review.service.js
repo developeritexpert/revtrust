@@ -14,12 +14,29 @@ const createReview = async (data) => {
   }
 };
 
-const getAllReviews = async (page, limit, filters) => {
+// const getAllReviews = async (page, limit, filters) => {
+//   const skip = (page - 1) * limit;
+//   const [reviews, total] = await Promise.all([
+//     Review.find(filters).sort({ createdAt: -1 }).skip(skip).limit(limit),
+//     Review.countDocuments(filters),
+//   ]);
+//   return {
+//     data: reviews,
+//     pagination: { total, page, limit, totalPages: Math.ceil(total / limit) },
+//   };
+// };
+const getAllReviews = async (page, limit, filters, sortBy = 'createdAt', order = 'desc') => {
   const skip = (page - 1) * limit;
+
+  const sortOrder = order === 'asc' ? 1 : -1;
+  const sort = {};
+  sort[sortBy] = sortOrder;
+
   const [reviews, total] = await Promise.all([
-    Review.find(filters).sort({ createdAt: -1 }).skip(skip).limit(limit),
+    Review.find(filters).sort(sort).skip(skip).limit(limit),
     Review.countDocuments(filters),
   ]);
+
   return {
     data: reviews,
     pagination: { total, page, limit, totalPages: Math.ceil(total / limit) },
