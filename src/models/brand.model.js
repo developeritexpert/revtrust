@@ -65,6 +65,19 @@ brandSchema.virtual('averageRating').get(function () {
   return Math.round((this.totalRating / this.totalReviews) * 10) / 10;
 });
 
+brandSchema.virtual('reviews', {
+  ref: 'Review',
+  localField: '_id',
+  foreignField: 'brandId',
+  match: { reviewType: 'Brand' },
+});
+
+brandSchema.virtual('products', {
+  ref: 'Product',
+  localField: '_id',
+  foreignField: 'brandId',
+});
+
 brandSchema.index({ name: 1 }, { unique: true });
 brandSchema.index({ email: 1 }, { unique: true });
 

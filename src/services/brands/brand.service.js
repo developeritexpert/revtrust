@@ -1,5 +1,7 @@
 const Brand = require('../../models/brand.model');
+const Review = require('../../models/review.model');
 const { ErrorHandler } = require('../../utils/error-handler');
+const mongoose = require('mongoose');
 
 const createBrand = async (data) => {
   try {
@@ -54,10 +56,87 @@ const getAllBrands = async (page, limit, filters, sortBy = 'createdAt', order = 
 };
 
 
-const getBrandById = async (id) => {
+// const getBrandById = async (id) => {
+//   const brand = await Brand.findById(id)
+//     .populate({
+//       path: 'reviews',
+//       select: 'reviewTitle reviewBody name email status product_store_rating createdAt',
+//       options: { sort: { createdAt: -1 } },
+//     })
+//     .populate({
+//       path: 'products',
+//       select: 'name price stockQuantity status createdAt',
+//       options: { sort: { createdAt: -1 } },
+//     });
+
+//   if (!brand) throw new ErrorHandler(404, 'Brand not found');
+
+//   return brand;
+// };
+
+const getBrandById = async (
+  id,
+  page = 1,
+  limit = 10,
+  filters = {},
+  sortBy = 'createdAt',
+  sortOrder = 'desc'
+) => {
+  const skip = (page - 1) * limit;
+
   const brand = await Brand.findById(id);
   if (!brand) throw new ErrorHandler(404, 'Brand not found');
-  return brand;
+
+  const reviewQuery = { brandId: id, status: 'ACTIVE' };
+
+  if (filters.minRating)
+    reviewQuery.product_store_rating = { $gte: Number(filters.minRating) };
+  if (filters.maxRating)
+    reviewQuery.product_store_rating = {
+      ...(reviewQuery.product_store_rating || {}),
+      $lte: Number(filters.maxRating),
+    };
+  if (filters.email) reviewQuery.email = filters.email;
+
+  const sort = {};
+  sort[sortBy] = sortOrder === 'asc' ? 1 : -1;
+
+  const [reviewStats, reviews, totalReviews] = await Promise.all([
+    Review.aggregate([
+      { $match: { brandId: new mongoose.Types.ObjectId(id), status: 'ACTIVE' } },
+      {
+        $group: {
+          _id: '$brandId',
+          totalReviews: { $sum: 1 },
+          averageRating: { $avg: '$product_store_rating' },
+        },
+      },
+    ]),
+    Review.find(reviewQuery)
+      .sort(sort)
+      .skip(skip)
+      .limit(limit)
+      .select(
+        'reviewTitle reviewBody name email product_store_rating seller_rating product_quality_rating product_price_rating createdAt'
+      ),
+    Review.countDocuments(reviewQuery),
+  ]);
+
+  const reviewSummary = reviewStats[0] || { totalReviews: 0, averageRating: 0 };
+
+  return {
+    ...brand.toObject(),
+    reviewSummary,
+    reviews: {
+      data: reviews,
+      pagination: {
+        total: totalReviews,
+        page,
+        limit,
+        totalPages: Math.ceil(totalReviews / limit),
+      },
+    },
+  };
 };
 
 const updateBrand = async (id, data) => {

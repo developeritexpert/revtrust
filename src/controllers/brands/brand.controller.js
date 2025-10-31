@@ -29,18 +29,31 @@ const getAllBrands = wrapAsync(async (req, res) => {
   const { page, limit } = getPaginationParams(req.query);
   const filters = buildBrandFilters(req.query);
 
-  // Dynamic sort
+
   const sortBy = req.query.sortBy || 'createdAt';
-  const order = req.query.order || 'desc';
+  const order = req.query.sortOrder || req.query.order || 'desc';
 
   const result = await BrandServices.getAllBrands(page, limit, filters, sortBy, order);
 
   sendResponse(res, result, 'All brands fetched successfully', 200);
 });
 
+// const getBrandById = wrapAsync(async (req, res) => {
+//   const { id } = req.params;
+//   const result = await BrandServices.getBrandById(id);
+//   sendResponse(res, result, 'Brand fetched successfully', 200);
+// });
 const getBrandById = wrapAsync(async (req, res) => {
   const { id } = req.params;
-  const result = await BrandServices.getBrandById(id);
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const sortBy = req.query.sortBy || 'createdAt';
+  const sortOrder = req.query.sortOrder || req.query.order || 'desc';
+
+
+  const result = await BrandServices.getBrandById(id, page, limit, {}, sortBy, sortOrder);
+
+
   sendResponse(res, result, 'Brand fetched successfully', 200);
 });
 
