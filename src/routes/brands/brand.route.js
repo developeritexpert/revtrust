@@ -13,6 +13,7 @@ const API = {
   GET_BRAND: '/:id',
   UPDATE_BRAND: '/update/:id',
   DELETE_BRAND: '/delete/:id',
+  GET_BRAND_WITH_REVIEW: '/:id/reviews',
 };
 
 brandRouter.get(API.INFO, brandController.getBrandApiInfo);
@@ -34,6 +35,7 @@ brandRouter.post(
 brandRouter.get(API.GET_ALL_BRANDS, brandController.getAllBrands);
 
 brandRouter.get(API.GET_BRAND, celebrate(BrandSchema.idParam), brandController.getBrandById);
+brandRouter.get(API.GET_BRAND, celebrate(BrandSchema.idParam), brandController.getBrandByIdWithReview);
 
 brandRouter.put(
   API.UPDATE_BRAND,

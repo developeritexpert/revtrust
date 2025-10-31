@@ -38,12 +38,12 @@ const getAllBrands = wrapAsync(async (req, res) => {
   sendResponse(res, result, 'All brands fetched successfully', 200);
 });
 
-// const getBrandById = wrapAsync(async (req, res) => {
-//   const { id } = req.params;
-//   const result = await BrandServices.getBrandById(id);
-//   sendResponse(res, result, 'Brand fetched successfully', 200);
-// });
 const getBrandById = wrapAsync(async (req, res) => {
+  const { id } = req.params;
+  const result = await BrandServices.getBrandById(id);
+  sendResponse(res, result, 'Brand fetched successfully', 200);
+});
+const getBrandByIdWithReview = wrapAsync(async (req, res) => {
   const { id } = req.params;
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
@@ -51,7 +51,7 @@ const getBrandById = wrapAsync(async (req, res) => {
   const sortOrder = req.query.sortOrder || req.query.order || 'desc';
 
 
-  const result = await BrandServices.getBrandById(id, page, limit, {}, sortBy, sortOrder);
+  const result = await BrandServices.getBrandByIdWithReview(id, page, limit, {}, sortBy, sortOrder);
 
 
   sendResponse(res, result, 'Brand fetched successfully', 200);
@@ -148,4 +148,5 @@ module.exports = {
   updateBrand,
   deleteBrand,
   getBrandApiInfo,
+  getBrandByIdWithReview,
 };
