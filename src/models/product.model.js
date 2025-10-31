@@ -41,6 +41,10 @@ const productSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    totalRating: {
+      type: Number,
+      default: 0,
+    },
     status: {
       type: String,
       enum: Object.values(CONSTANT_ENUM.PRODUCT_STATUS),
@@ -49,8 +53,15 @@ const productSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   }
 );
+
+productSchema.virtual('averageRating').get(function () {
+  if (!this.totalReviews || this.totalReviews === 0) return 0;
+  return Math.round((this.totalRating / this.totalReviews) * 10) / 10;
+});
 
 productSchema.pre('save', function (next) {
   this.inStock = this.stockQuantity > 0;

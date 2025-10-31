@@ -13,9 +13,13 @@ const getAllReviews = wrapAsync(async (req, res) => {
   const { page, limit } = getPaginationParams(req.query);
   const filters = buildReviewFilters(req.query);
 
-  const result = await ReviewServices.getAllReviews(page, limit, filters);
+  const sortBy = req.query.sortBy || 'createdAt';
+  const order = req.query.order || 'desc';
+
+  const result = await ReviewServices.getAllReviews(page, limit, filters, sortBy, order);
   sendResponse(res, result, 'All reviews fetched successfully', 200);
 });
+
 
 const getReviewById = wrapAsync(async (req, res) => {
   const { id } = req.params;

@@ -17,11 +17,23 @@ const createBrand = wrapAsync(async (req, res) => {
 });
 
 
+// const getAllBrands = wrapAsync(async (req, res) => {
+//   const { page, limit } = getPaginationParams(req.query);
+//   const filters = buildBrandFilters(req.query);
+
+//   const result = await BrandServices.getAllBrands(page, limit, filters);
+
+//   sendResponse(res, result, 'All brands fetched successfully', 200);
+// });
 const getAllBrands = wrapAsync(async (req, res) => {
   const { page, limit } = getPaginationParams(req.query);
   const filters = buildBrandFilters(req.query);
 
-  const result = await BrandServices.getAllBrands(page, limit, filters);
+  // Dynamic sort
+  const sortBy = req.query.sortBy || 'createdAt';
+  const order = req.query.order || 'desc';
+
+  const result = await BrandServices.getAllBrands(page, limit, filters, sortBy, order);
 
   sendResponse(res, result, 'All brands fetched successfully', 200);
 });

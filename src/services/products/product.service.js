@@ -19,16 +19,21 @@ const createProduct = async (data) => {
   }
 };
 
-const getAllProducts = async (page, limit, filters) => {
+const getAllProducts = async (page, limit, filters, sortBy = 'createdAt', order = 'desc') => {
   const skip = (page - 1) * limit;
+  const sortOrder = order === 'asc' ? 1 : -1;
+  const sort = {};
+  sort[sortBy] = sortOrder;
+
   const [products, total] = await Promise.all([
     Product.find(filters)
       .populate('brandId', 'name email logoUrl')
-      .sort({ createdAt: -1 })
+      .sort(sort) 
       .skip(skip)
       .limit(limit),
     Product.countDocuments(filters),
   ]);
+
   return {
     data: products,
     pagination: { total, page, limit, totalPages: Math.ceil(total / limit) }

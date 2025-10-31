@@ -15,8 +15,10 @@ const createProduct = wrapAsync(async (req, res) => {
 const getAllProducts = wrapAsync(async (req, res) => {
   const { page, limit } = getPaginationParams(req.query);
   const filters = buildProductFilters(req.query);
+  const sortBy = req.query.sortBy || 'createdAt';
+  const order = req.query.order || 'desc';
 
-  const result = await ProductServices.getAllProducts(page, limit, filters);
+  const result = await ProductServices.getAllProducts(page, limit, filters, sortBy, order);
   sendResponse(res, result, 'All products fetched successfully', 200);
 });
 
