@@ -56,25 +56,15 @@ const getAllBrands = async (page, limit, filters, sortBy = 'createdAt', order = 
 };
 
 
-// const getBrandById = async (id) => {
-//   const brand = await Brand.findById(id)
-//     .populate({
-//       path: 'reviews',
-//       select: 'reviewTitle reviewBody name email status product_store_rating createdAt',
-//       options: { sort: { createdAt: -1 } },
-//     })
-//     .populate({
-//       path: 'products',
-//       select: 'name price stockQuantity status createdAt',
-//       options: { sort: { createdAt: -1 } },
-//     });
+const getBrandById = async (id) => {
+  const brand = await Brand.findById(id);
 
-//   if (!brand) throw new ErrorHandler(404, 'Brand not found');
+  if (!brand) throw new ErrorHandler(404, 'Brand not found');
 
-//   return brand;
-// };
+  return brand;
+};
 
-const getBrandById = async (
+const getBrandByIdWithReview = async (
   id,
   page = 1,
   limit = 10,
@@ -156,4 +146,5 @@ module.exports = {
   getBrandById,
   updateBrand,
   deleteBrand,
+  getBrandByIdWithReview,
 };
