@@ -137,25 +137,40 @@ reviewSchema.post('findOneAndUpdate', async function (doc) {
   const finalStatus = newStatus !== undefined ? newStatus : oldStatus;
   const finalRating = newRating !== undefined ? newRating : oldRating;
 
+  // Ensure we have reviewType and the correct id (prefer stored oldDoc values)
+  const reviewType = this._oldDoc.reviewType || doc.reviewType;
+  const productId = this._oldDoc.productId || doc.productId;
+  const brandId = this._oldDoc.brandId || doc.brandId;
+
+  // Build a minimal doc object to pass to adjustReviewStats (guarantees ids + type)
+  const ctxDoc = {
+    reviewType,
+    productId,
+    brandId,
+    product_store_rating: finalRating,
+  };
+
   // Case 1: Status changed from INACTIVE to ACTIVE
   if (
     oldStatus === CONSTANT_ENUM.REVIEW_STATUS.INACTIVE &&
     newStatus === CONSTANT_ENUM.REVIEW_STATUS.ACTIVE
   ) {
-    // Add the review with its current rating
-    await adjustReviewStats(
-      { ...doc, product_store_rating: finalRating },
-      1
-    );
+    // Add the review with its (final) rating
+    await adjustReviewStats(ctxDoc, 1);
   }
   // Case 2: Status changed from ACTIVE to INACTIVE
   else if (
     oldStatus === CONSTANT_ENUM.REVIEW_STATUS.ACTIVE &&
     newStatus === CONSTANT_ENUM.REVIEW_STATUS.INACTIVE
   ) {
-    // Remove the review with its old rating
+    // Remove the review using the old rating
     await adjustReviewStats(
-      { ...doc, product_store_rating: oldRating },
+      {
+        reviewType,
+        productId,
+        brandId,
+        product_store_rating: oldRating,
+      },
       -1
     );
   }
@@ -167,11 +182,15 @@ reviewSchema.post('findOneAndUpdate', async function (doc) {
   ) {
     // Only adjust the rating difference (no count change)
     const ratingDiff = newRating - oldRating;
-    await adjustReviewStats(doc, 0, ratingDiff);
+    await adjustReviewStats(
+      { reviewType, productId, brandId, product_store_rating: finalRating },
+      0,
+      ratingDiff
+    );
   }
   
   // Case 4: Both status and rating changed to ACTIVE with new rating
-  // This is handled by Case 1 with finalRating
+  // This is covered by Case 1 using finalRating
 });
 
 /**
