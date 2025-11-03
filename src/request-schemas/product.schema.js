@@ -28,9 +28,9 @@ const addProduct = {
       brandId: Joi.string().custom(objectIdValidation).required().messages({
         'any.required': 'Brand ID is required',
       }),
-      // image: Joi.string().trim().uri().optional().allow('').messages({
-      //   'string.uri': 'Image must be a valid URL',
-      // }),
+      image: Joi.string().trim().uri().optional().allow('').messages({
+        'string.uri': 'Image must be a valid URL',
+      }),
       price: Joi.number().min(0).required().messages({
         'number.base': 'Price must be a number',
         'number.min': 'Price must be at least 0',
@@ -63,9 +63,9 @@ const updateProduct = {
         'string.max': 'Handle must not exceed 200 characters',
       }),
       brandId: Joi.string().custom(objectIdValidation).optional(),
-      // image: Joi.string().trim().uri().optional().allow('').messages({
-      //   'string.uri': 'Image must be a valid URL',
-      // }),
+      image: Joi.string().trim().uri().optional().allow('').messages({
+        'string.uri': 'Image must be a valid URL',
+      }),
       price: Joi.number().min(0).optional().messages({
         'number.base': 'Price must be a number',
         'number.min': 'Price must be at least 0',

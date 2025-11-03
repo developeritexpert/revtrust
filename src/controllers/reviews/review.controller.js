@@ -34,6 +34,13 @@ const updateReview = wrapAsync(async (req, res) => {
   sendResponse(res, result, 'Review has been updated successfully', 200);
 });
 
+const updateStateReview = wrapAsync(async (req, res) => {
+  const { id } = req.params;
+  const updateData = req.body;
+  const result = await ReviewServices.updateStateReview(id, updateData);
+  sendResponse(res, result, 'Review has been updated successfully', 200);
+});
+
 const deleteReview = wrapAsync(async (req, res) => {
   const { id } = req.params;
   await ReviewServices.deleteReview(id);
@@ -111,4 +118,5 @@ module.exports = {
   updateReview,
   deleteReview,
   getReviewApiInfo,
+  updateStateReview,
 };

@@ -22,7 +22,7 @@ const { logger } = require('./src/utils/winston-logger'); // Use your logger
 // Server Configuration
 // --------------------------------------------------
 const numCPUs = os.cpus().length;
-const numClusters = parseInt(config.clusterSize || numCPUs, 10);
+const numClusters = parseInt(config.clusterSize || numCPUs, 1);
 const port = config.server.port || 4000;
 
 // --------------------------------------------------

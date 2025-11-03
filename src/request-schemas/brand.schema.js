@@ -34,6 +34,9 @@ const addBrand = {
         'string.empty': 'Postcode is required',
         'any.required': 'Postcode is required',
       }),
+      logoUrl: Joi.string().trim().uri().optional().allow('').messages({
+        'string.uri': 'Image must be a valid URL',
+      }),
     })
     .required(),
 };
@@ -55,6 +58,9 @@ const updateBrand = {
       description: Joi.string().trim().optional().allow('', null),
       status: Joi.string().valid('ACTIVE', 'INACTIVE').optional().messages({
         'any.only': 'Status must be either "ACTIVE" or "INACTIVE"',
+      }),
+      logoUrl: Joi.string().trim().uri().optional().allow('').messages({
+        'string.uri': 'Image must be a valid URL',
       }),
       postcode: Joi.string().trim().optional(),
     })

@@ -27,13 +27,23 @@ const createReview = async (data) => {
 // };
 const getAllReviews = async (page, limit, filters, sortBy = 'createdAt', order = 'desc') => {
   const skip = (page - 1) * limit;
-
   const sortOrder = order === 'asc' ? 1 : -1;
   const sort = {};
   sort[sortBy] = sortOrder;
 
   const [reviews, total] = await Promise.all([
-    Review.find(filters).sort(sort).skip(skip).limit(limit),
+    Review.find(filters)
+      .sort(sort)
+      .skip(skip)
+      .limit(limit)
+      .populate({
+        path: 'productId',
+        select: 'name handle image price status',
+      })
+      .populate({
+        path: 'brandId',
+        select: 'name logo status',
+      }),
     Review.countDocuments(filters),
   ]);
 
@@ -43,6 +53,7 @@ const getAllReviews = async (page, limit, filters, sortBy = 'createdAt', order =
   };
 };
 
+
 const getReviewById = async (id) => {
   const review = await Review.findById(id);
   if (!review) throw new ErrorHandler(404, 'Review not found');
@@ -50,6 +61,12 @@ const getReviewById = async (id) => {
 };
 
 const updateReview = async (id, data) => {
+  const review = await Review.findByIdAndUpdate(id, data, { new: true, runValidators: true });
+  if (!review) throw new ErrorHandler(404, 'Review not found');
+  return review;
+};
+
+const updateStateReview = async (id, data) => {
   const review = await Review.findByIdAndUpdate(id, data, { new: true, runValidators: true });
   if (!review) throw new ErrorHandler(404, 'Review not found');
   return review;
@@ -66,4 +83,5 @@ module.exports = {
   getReviewById,
   updateReview,
   deleteReview,
+  updateStateReview,
 };
