@@ -67,9 +67,11 @@ const addReview = {
       phoneNumber: Joi.string().trim().optional().allow('', null),
       productId: Joi.string()
         .custom(objectIdValidation)
+        .allow('', null)
         .when('reviewType', { is: 'Product', then: Joi.required().messages({ 'any.required': 'Product ID is required for product reviews' }) }),
       brandId: Joi.string()
         .custom(objectIdValidation)
+        .allow('', null)
         .when('reviewType', { is: 'Brand', then: Joi.required().messages({ 'any.required': 'Brand ID is required for brand reviews' }) }),
       status: Joi.string().valid('ACTIVE', 'INACTIVE').default('INACTIVE'),
     })
@@ -93,9 +95,11 @@ const updateReview = {
       phoneNumber: Joi.string().trim().optional().allow('', null),
       productId: Joi.string()
         .custom(objectIdValidation)
+        .allow('', null)
         .when('reviewType', { is: 'Product', then: Joi.required().messages({ 'any.required': 'Product ID is required for product reviews' }) }),
       brandId: Joi.string()
         .custom(objectIdValidation)
+        .allow('', null)
         .when('reviewType', { is: 'Brand', then: Joi.required().messages({ 'any.required': 'Brand ID is required for brand reviews' }) }),
       status: Joi.string().valid('ACTIVE', 'INACTIVE').optional(),
       privacy_policy: Joi.boolean().required(),
@@ -103,6 +107,11 @@ const updateReview = {
 
     })
     .required(),
+};
+const updateReviewStatus = {
+  [Segments.BODY]: Joi.object({
+    status: Joi.string().valid('ACTIVE', 'INACTIVE').required(),
+  }),
 };
 
 const idParam = {
@@ -115,4 +124,5 @@ module.exports = {
   addReview,
   updateReview,
   idParam,
+  updateReviewStatus,
 };

@@ -14,6 +14,7 @@ const API = {
   GET_REVIEW: '/:id',
   UPDATE_REVIEW: '/update/:id',
   DELETE_REVIEW: '/delete/:id',
+  STATUS_REVIEW: '/:id/status',
 };
 
 reviewRouter.get(API.INFO, reviewController.getReviewApiInfo);
@@ -28,6 +29,7 @@ reviewRouter.post(
 reviewRouter.get(API.GET_ALL_REVIEWS, reviewController.getAllReviews);
 
 reviewRouter.get(API.GET_REVIEW, celebrate(ReviewSchema.idParam), reviewController.getReviewById);
+reviewRouter.put(API.STATUS_REVIEW, celebrate(ReviewSchema.updateReviewStatus), reviewController.updateStateReview);
 
 reviewRouter.put(
   API.UPDATE_REVIEW,
