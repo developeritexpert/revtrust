@@ -92,6 +92,22 @@ const buildReviewFilters = (queryParams) => {
     if (queryParams.maxRating) filters.rating.$lte = Number(queryParams.maxRating);
   }
 
+   // ✅ Additional specific rating filters
+   if (queryParams.minRating)
+    filters.product_store_rating = { $gte: Number(queryParams.minRating) };
+
+  if (queryParams.sellerRating)
+    filters.seller_rating = { $gte: Number(queryParams.sellerRating) };
+
+  if (queryParams.qualityRating)
+    filters.product_quality_rating = { $gte: Number(queryParams.qualityRating) };
+
+  if (queryParams.priceRating)
+    filters.product_price_rating = { $gte: Number(queryParams.priceRating) };
+
+  if (queryParams.issueRating)
+    filters.issue_handling_rating = { $gte: Number(queryParams.issueRating) };
+
   return filters;
 };
 

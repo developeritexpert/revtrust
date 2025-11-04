@@ -135,10 +135,17 @@ const updateBrand = async (id, data) => {
   return brand;
 };
 
+// Service
 const deleteBrand = async (id) => {
+  console.log('🧩 Service: attempting to delete brand with ID:', id);
   const brand = await Brand.findByIdAndDelete(id);
-  if (!brand) throw new ErrorHandler(404, 'Brand not found');
+  if (!brand) {
+    console.log('❌ Brand not found for ID:', id);
+    throw new ErrorHandler(404, 'Brand not found');
+  }
+  console.log('✅ Brand deleted in DB:', brand._id);
 };
+
 
 module.exports = {
   createBrand,
