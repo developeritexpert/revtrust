@@ -14,9 +14,9 @@ const reviewSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Product',
       required: function () {
-        return this.reviewType === 'Product';
+        return this.reviewType === 'Product' && !this.shopifyProductId;
       },
-    },
+    },    
     brandId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Brand',
