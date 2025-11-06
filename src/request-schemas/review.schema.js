@@ -65,20 +65,40 @@ const addReview = {
 
       orderId: Joi.string().trim().optional().allow('', null),
       phoneNumber: Joi.string().trim().optional().allow('', null),
-            // ✅ NEW FIELD
-      shopifyId: Joi.string().trim().optional().allow('', null).messages({
+      // ✅ NEW FIELD
+      shopifyProductId: Joi.string().trim().optional().allow('', null).messages({
         'string.base': 'Shopify ID must be a string',
       }),
       productId: Joi.string()
-        .custom(objectIdValidation)
-        .allow('', null)
-        .when('reviewType', { is: 'Product', then: Joi.required().messages({ 'any.required': 'Product ID is required for product reviews' }) }),
+      .custom(objectIdValidation)
+      .allow('', null)
+      .optional(), // ✅ changed
       brandId: Joi.string()
         .custom(objectIdValidation)
         .allow('', null)
         .when('reviewType', { is: 'Brand', then: Joi.required().messages({ 'any.required': 'Brand ID is required for brand reviews' }) }),
       status: Joi.string().valid('ACTIVE', 'INACTIVE').default('INACTIVE'),
     })
+    .custom((value, helpers) => {
+      if (value.reviewType === 'Product') {
+        const hasProductId = !!value.productId;
+        const hasshopifyProductId = !!value.shopifyProductId;
+    
+        if (!hasProductId && !hasshopifyProductId) {
+          return helpers.error('any.custom', {
+            message: 'Either productId or shopifyProductId is required for product reviews',
+          });
+        }
+    
+        if (hasProductId && hasshopifyProductId) {
+          return helpers.error('any.custom', {
+            message: 'Provide only one: either productId or shopifyProductId (not both)',
+          });
+        }
+      }
+      return value;
+    })
+    
     .required(),
 };
 
@@ -102,9 +122,10 @@ const updateReview = {
         'string.base': 'Shopify ID must be a string',
       }),
       productId: Joi.string()
-        .custom(objectIdValidation)
-        .allow('', null)
-        .when('reviewType', { is: 'Product', then: Joi.required().messages({ 'any.required': 'Product ID is required for product reviews' }) }),
+      .custom(objectIdValidation)
+      .allow('', null)
+      .optional(), // ✅ changed
+
       brandId: Joi.string()
         .custom(objectIdValidation)
         .allow('', null)
@@ -114,6 +135,27 @@ const updateReview = {
       term_and_condition: Joi.boolean().required(),
 
     })
+    .custom((value, helpers) => {
+  if (value.reviewType === 'Product') {
+    const hasProductId = !!value.productId;
+    const hasshopifyProductId = !!value.shopifyProductId;
+
+
+    if (!hasProductId && !hasshopifyProductId) {
+      return helpers.error('any.custom', {
+        message: 'Either productId or shopifyProductId is required for product reviews',
+      });
+    }
+
+    if (hasProductId && hasshopifyProductId) {
+      return helpers.error('any.custom', {
+        message: 'Provide only one: either productId or shopifyProductId (not both)',
+      });
+    }
+  }
+  return value;
+})
+
     .required(),
 };
 const updateReviewStatus = {
