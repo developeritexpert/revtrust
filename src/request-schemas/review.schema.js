@@ -65,6 +65,10 @@ const addReview = {
 
       orderId: Joi.string().trim().optional().allow('', null),
       phoneNumber: Joi.string().trim().optional().allow('', null),
+            // ✅ NEW FIELD
+      shopifyId: Joi.string().trim().optional().allow('', null).messages({
+        'string.base': 'Shopify ID must be a string',
+      }),
       productId: Joi.string()
         .custom(objectIdValidation)
         .allow('', null)
@@ -93,6 +97,10 @@ const updateReview = {
       reviewType: Joi.string().valid('Product', 'Brand').required(),
       orderId: Joi.string().trim().optional().allow('', null),
       phoneNumber: Joi.string().trim().optional().allow('', null),
+      // ✅ NEW FIELD
+      shopifyProductId: Joi.string().trim().optional().allow('', null).messages({
+        'string.base': 'Shopify ID must be a string',
+      }),
       productId: Joi.string()
         .custom(objectIdValidation)
         .allow('', null)

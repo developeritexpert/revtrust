@@ -2,10 +2,8 @@
 const { User } = require('../../models/user.model');
 const { OTP } = require('../../models/otp.model');
 const { ErrorHandler } = require('../../utils/error-handler');
-const { generateVerificationToken, getTokenExpiration } = require('../../utils/token.utils');
-
+const { generateVerificationToken } = require('../../utils/token.utils');
 const TOKEN_GEN = require('../../helper/generate-token');
-
 const mailService = require('../../mail/mails');
 const authConfig = require('../../config/auth.config');
 
@@ -47,83 +45,54 @@ const register = async ({ name, email, password }) => {
   };
 };
 
+/**
+ * Login with real database check
+ */
 const login = async (email, password, rememberMe = false) => {
   const normalized = email.toLowerCase();
 
-  if (normalized === 'admin@example.com' && password === 'password') {
-    const dummyUser = {
-      _id: '000000000000000000000001',
-      name: 'Admin User',
-      email: 'admin@example.com',
-      role: 'ADMIN',
-      isActive: true,
-      isEmailVerified: true,
-      toSafeObject() {
-        return {
-          id: this._id,
-          name: this.name,
-          email: this.email,
-          role: this.role,
-          isActive: this.isActive,
-          isEmailVerified: this.isEmailVerified,
-        };
-      },
-    };
-
-    // Use a valid JWT timespan string
-    const expiry = rememberMe ? '7d' : '1h';
-
-    // Pass expiry correctly
-    const token = TOKEN_GEN.generateToken(dummyUser._id, dummyUser.role, expiry);
-
-    return {
-      data: {
-        user: dummyUser.toSafeObject(),
-        token,
-        expiresIn: expiry,
-      },
-      message: 'Login successful (dummy admin)',
-    };
+  // Find user with password field
+  const user = await User.findOne({ email: normalized }).select('+password');
+  console.log(user);
+  
+  if (!user) {
+    throw new ErrorHandler(401, 'Invalid credentials');
   }
 
-  throw new ErrorHandler(401, 'Invalid credentials');
+  // Check if account is active
+  if (!user.isActive) {
+    throw new ErrorHandler(403, 'Account deactivated. Please contact support.');
+  }
+
+  // Check email verification (if enabled)
+  if (authConfig.features.emailVerification && !user.isEmailVerified) {
+    throw new ErrorHandler(403, 'Please verify your email first');
+  }
+
+  // Verify password
+  const isMatch = await user.comparePassword(password);
+  if (!isMatch) {
+    throw new ErrorHandler(401, 'Invalid credentials');
+  }
+
+  // Generate token
+  const expiry =
+    authConfig.features.rememberMe && rememberMe
+      ? authConfig.tokens.accessToken.long
+      : authConfig.tokens.accessToken.short;
+
+  const token = TOKEN_GEN.generateToken(user._id.toString(), user.role, expiry);
+
+  // Return user without password
+  return {
+    data: {
+      user: user.toSafeObject(),
+      token,
+      expiresIn: expiry,
+    },
+    message: 'Login successful',
+  };
 };
-
-
-
-// const login = async (email, password, rememberMe = false) => {
-//   const normalized = email.toLowerCase();
-
-//   const user = await User.findOne({ email: normalized }).select('+password');
-//   if (!user) throw new ErrorHandler(404, 'Invalid credentials');
-
-//   if (!user.isActive) throw new ErrorHandler(403, 'Account deactivated');
-
-//   // Check email verification (if enabled)
-//   if (authConfig.features.emailVerification && !user.isEmailVerified) {
-//     throw new ErrorHandler(403, 'Please verify your email first');
-//   }
-
-//   const isMatch = await user.comparePassword(password);
-//   if (!isMatch) throw new ErrorHandler(404, 'Invalid credentials');
-
-//   // Generate token
-//   const expiry =
-//     authConfig.features.rememberMe && rememberMe
-//       ? authConfig.tokens.accessToken.long
-//       : authConfig.tokens.accessToken.short;
-
-//   const token = tokenHelper.generateToken({ id: user._id, role: user.role }, expiry);
-
-//   return {
-//     data: {
-//       user: user.toSafeObject(),
-//       token,
-//       expiresIn: expiry,
-//     },
-//     message: 'Login successful',
-//   };
-// };
 
 // ============ EMAIL VERIFICATION ============
 const verifyEmail = async (token) => {
@@ -148,7 +117,7 @@ const resendVerification = async (email) => {
 
   if (user.isEmailVerified) throw new ErrorHandler(400, 'Email already verified');
 
-  user.verificationToken = tokenHelper.generateRandomToken(32);
+  user.verificationToken = generateVerificationToken();
   user.verificationTokenExpires = Date.now() + authConfig.tokens.verificationToken.expiry;
   await user.save();
 
@@ -166,7 +135,7 @@ const sendOTP = async (email) => {
   const user = await User.findOne({ email: email.toLowerCase() });
   if (!user) throw new ErrorHandler(404, 'User not found');
 
-  const otp = tokenHelper.generateOTP(authConfig.otp.length);
+  const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
 
   await OTP.deleteMany({ email: user.email });
   await OTP.create({
@@ -198,7 +167,12 @@ const verifyOTP = async (email, otp) => {
 
   await OTP.deleteOne({ _id: record._id });
 
-  const resetToken = tokenHelper.generateResetToken({ id: user._id });
+  // Generate reset token
+  const resetToken = TOKEN_GEN.generateToken(
+    user._id.toString(), 
+    user.role, 
+    '15m' // 15 minutes expiry for password reset
+  );
 
   return {
     resetToken,
@@ -207,16 +181,25 @@ const verifyOTP = async (email, otp) => {
 };
 
 const resetPassword = async (token, newPassword) => {
-  const decoded = tokenHelper.verifyResetToken(token);
-  if (!decoded) throw new ErrorHandler(400, 'Invalid or expired token');
+  try {
+    // Verify reset token
+    const decoded = TOKEN_GEN.verifyToken(token);
+    if (!decoded) throw new ErrorHandler(400, 'Invalid or expired token');
 
-  const user = await User.findById(decoded.id);
-  if (!user) throw new ErrorHandler(404, 'User not found');
+    const user = await User.findById(decoded.id);
+    if (!user) throw new ErrorHandler(404, 'User not found');
 
-  user.password = newPassword;
-  await user.save();
+    // Update password (will be hashed by pre-save hook)
+    user.password = newPassword;
+    await user.save();
 
-  return true;
+    return true;
+  } catch (error) {
+    if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+      throw new ErrorHandler(400, 'Invalid or expired token');
+    }
+    throw error;
+  }
 };
 
 module.exports = {
