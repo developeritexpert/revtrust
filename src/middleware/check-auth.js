@@ -14,12 +14,14 @@ module.exports = async (req, res, next) => {
 
     try {
       const decoded = jwt.verify(token, config.server.jwtSecretKey);
+      console.log("decode",decoded);
       const userExist = await UserServices.getUserByID(decoded.id, true);
+      console.log(userExist);
       if (!userExist) {
         return next(new ErrorHandler(404, "Couldn't find your account, please create an account"));
       }
 
-      req.user = userExist;
+      req.userId = userExist._id;
     } catch (err) {
       return next(
         new ErrorHandler(401, "Couldn't verify your identity, please try logging in again")

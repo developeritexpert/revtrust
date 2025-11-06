@@ -8,8 +8,8 @@ module.exports = {
 
   tokens: {
     accessToken: {
-      short: '1h', // Default token expiry
-      long: '7d', // Remember me token expiry
+      short: '24h', // Default token expiry
+      long: '30d', // Remember me token expiry
     },
     verificationToken: {
       expiry: 24 * 60 * 60 * 1000, // 24 hours
