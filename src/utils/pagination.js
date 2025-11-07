@@ -71,7 +71,7 @@ const buildProductFilters = (query) => {
 const buildReviewFilters = (queryParams) => {
   const filters = {};
 
-  const textFields = ['reviewTitle', 'reviewBody', 'name', 'email', 'phoneNumber'];
+  const textFields = ['reviewTitle', 'reviewBody', 'name', 'email', 'phoneNumber','shopifyProductId'];
   for (const key of textFields) {
     if (queryParams[key]) {
       filters[key] = { $regex: queryParams[key], $options: 'i' };
