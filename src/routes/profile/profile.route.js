@@ -6,6 +6,9 @@ const { celebrate } = require('celebrate');
 const cloudinaryUpload = require('../../config/cloudinaryUpload');
 const checkAuth = require('../../middleware/check-auth');
 
+
+profileRouter.use(checkAuth);
+
 const API = {
   GET_PROFILE: '/',
   UPDATE_PROFILE: '/update',

@@ -21,9 +21,11 @@ const reviewSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Brand',
       required: function () {
-        return this.reviewType === 'Brand';
+        // Required if review is Brand OR review is Product with productId
+        return this.reviewType === 'Brand' || (this.reviewType === 'Product' && this.productId);
       },
     },
+    
 
     shopifyProductId: { type: String, default: null },
 

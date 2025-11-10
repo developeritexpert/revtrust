@@ -71,7 +71,7 @@ const buildProductFilters = (query) => {
 const buildReviewFilters = (queryParams) => {
   const filters = {};
 
-  const textFields = ['reviewTitle', 'reviewBody', 'name', 'email', 'phoneNumber','shopifyProductId'];
+  const textFields = ['reviewTitle', 'reviewBody', 'name', 'email', 'phoneNumber', 'shopifyProductId'];
   for (const key of textFields) {
     if (queryParams[key]) {
       filters[key] = { $regex: queryParams[key], $options: 'i' };
@@ -80,9 +80,16 @@ const buildReviewFilters = (queryParams) => {
 
   if (queryParams.status) filters.status = queryParams.status;
   if (queryParams._id) filters._id = queryParams._id;
-  if (queryParams.reviewType) filters.reviewType = queryParams.reviewType;
   if (queryParams.productId) filters.productId = queryParams.productId;
   if (queryParams.brandId) filters.brandId = queryParams.brandId;
+
+  // ✅ Handle brand/product review logic safely
+  if (queryParams.type === 'brand') {
+    filters.reviewType = 'Brand';
+  } else if (queryParams.type === 'product') {
+    filters.reviewType = 'Product';
+  }
+  // else if type === 'all' → don’t add reviewType filter
 
   if (queryParams.rating) filters.rating = Number(queryParams.rating);
 
@@ -92,8 +99,8 @@ const buildReviewFilters = (queryParams) => {
     if (queryParams.maxRating) filters.rating.$lte = Number(queryParams.maxRating);
   }
 
-   // ✅ Additional specific rating filters
-   if (queryParams.minRating)
+  // ✅ Specific rating filters
+  if (queryParams.minRating)
     filters.product_store_rating = { $gte: Number(queryParams.minRating) };
 
   if (queryParams.sellerRating)

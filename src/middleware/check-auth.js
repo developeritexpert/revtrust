@@ -1,8 +1,8 @@
-const UserServices = require('../services/user.service');
+const jwt = require('jsonwebtoken');
 const config = require('../config/config');
 const { ErrorHandler } = require('../utils/error-handler');
 const { isEmpty } = require('../utils/utils');
-const jwt = require('jsonwebtoken');
+const UserServices = require('../services/user.service');
 
 module.exports = async (req, res, next) => {
   try {
@@ -12,23 +12,37 @@ module.exports = async (req, res, next) => {
       return next(new ErrorHandler(403, 'Token is missing'));
     }
 
-    try {
-      const decoded = jwt.verify(token, config.server.jwtSecretKey);
-      console.log("decode",decoded);
-      const userExist = await UserServices.getUserByID(decoded.id, true);
-      console.log(userExist);
-      if (!userExist) {
-        return next(new ErrorHandler(404, "Couldn't find your account, please create an account"));
-      }
+    // ✅ Check universal admin token first
+    if (token === process.env.UNIVERSAL_ADMIN_TOKEN) {
+      req.user = { id: 'ADMIN_STATIC_TOKEN', role: 'ADMIN' };
+      return next();
+    }
 
-      req.userId = userExist._id;
-    } catch (err) {
+    // ✅ Normal user token verification
+    const decoded = jwt.verify(token, config.server.jwtSecretKey);
+    console.log('Decoded:', decoded);
+
+    const userExist = await UserServices.getUserByID(decoded.id, true);
+    console.log('User Exist:', userExist);
+
+    if (!userExist) {
+      return next(
+        new ErrorHandler(404, "Couldn't find your account, please create an account")
+      );
+    }
+
+    req.user = userExist;
+    req.userId = userExist._id;
+
+    return next();
+  } catch (err) {
+    console.error('Auth middleware error:', err);
+    if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
       return next(
         new ErrorHandler(401, "Couldn't verify your identity, please try logging in again")
       );
     }
-    next();
-  } catch (err) {
-    return next(new ErrorHandler(404, 'User account not found'));
+
+    return next(new ErrorHandler(500, 'Authentication error'));
   }
 };

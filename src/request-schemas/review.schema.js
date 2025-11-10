@@ -76,28 +76,38 @@ const addReview = {
       brandId: Joi.string()
         .custom(objectIdValidation)
         .allow('', null)
-        .when('reviewType', { is: 'Brand', then: Joi.required().messages({ 'any.required': 'Brand ID is required for brand reviews' }) }),
+        .when('reviewType', { 
+          is: Joi.valid('Brand'), 
+          then: Joi.required().messages({ 'any.required': 'Brand ID is required for brand reviews' }) 
+        })
+        .when('reviewType', { 
+          is: 'Product', 
+          then: Joi.required().messages({ 'any.required': 'Brand ID is required when selecting a product' }) 
+        }),
+
       status: Joi.string().valid('ACTIVE', 'INACTIVE').default('INACTIVE'),
     })
     .custom((value, helpers) => {
       if (value.reviewType === 'Product') {
-        const hasProductId = !!value.productId;
-        const hasshopifyProductId = !!value.shopifyProductId;
+        const hasProductId = value.productId && value.productId.trim() !== '';
+        const hasShopifyId = value.shopifyProductId && value.shopifyProductId.trim() !== '';
     
-        if (!hasProductId && !hasshopifyProductId) {
-          return helpers.error('any.custom', {
-            message: 'Either productId or shopifyProductId is required for product reviews',
-          });
+        if (!hasProductId && !hasShopifyId) {
+          return helpers.message('Either productId or shopifyProductId is required');
         }
     
-        if (hasProductId && hasshopifyProductId) {
-          return helpers.error('any.custom', {
-            message: 'Provide only one: either productId or shopifyProductId (not both)',
-          });
+        if (hasProductId && hasShopifyId) {
+          return helpers.message('Provide only one: either productId or shopifyProductId (not both)');
+        }
+    
+        if (!value.brandId || value.brandId.trim() === '') {
+          return helpers.message('Brand ID is required when selecting a product');
         }
       }
       return value;
     })
+    
+    
     
     .required(),
 };
@@ -127,34 +137,43 @@ const updateReview = {
       .optional(), // ✅ changed
 
       brandId: Joi.string()
-        .custom(objectIdValidation)
-        .allow('', null)
-        .when('reviewType', { is: 'Brand', then: Joi.required().messages({ 'any.required': 'Brand ID is required for brand reviews' }) }),
+      .custom(objectIdValidation)
+      .allow('', null)
+      .when('reviewType', { 
+        is: Joi.valid('Brand'), 
+        then: Joi.required().messages({ 'any.required': 'Brand ID is required for brand reviews' }) 
+      })
+      .when('reviewType', { 
+        is: 'Product', 
+        then: Joi.required().messages({ 'any.required': 'Brand ID is required when selecting a product' }) 
+      }),
+
       status: Joi.string().valid('ACTIVE', 'INACTIVE').optional(),
       privacy_policy: Joi.boolean().required(),
       term_and_condition: Joi.boolean().required(),
 
     })
     .custom((value, helpers) => {
-  if (value.reviewType === 'Product') {
-    const hasProductId = !!value.productId;
-    const hasshopifyProductId = !!value.shopifyProductId;
-
-
-    if (!hasProductId && !hasshopifyProductId) {
-      return helpers.error('any.custom', {
-        message: 'Either productId or shopifyProductId is required for product reviews',
-      });
-    }
-
-    if (hasProductId && hasshopifyProductId) {
-      return helpers.error('any.custom', {
-        message: 'Provide only one: either productId or shopifyProductId (not both)',
-      });
-    }
-  }
-  return value;
-})
+      if (value.reviewType === 'Product') {
+        const hasProductId = value.productId && value.productId.trim() !== '';
+        const hasShopifyId = value.shopifyProductId && value.shopifyProductId.trim() !== '';
+    
+        if (!hasProductId && !hasShopifyId) {
+          return helpers.message('Either productId or shopifyProductId is required');
+        }
+    
+        if (hasProductId && hasShopifyId) {
+          return helpers.message('Provide only one: either productId or shopifyProductId (not both)');
+        }
+    
+        if (!value.brandId || value.brandId.trim() === '') {
+          return helpers.message('Brand ID is required when selecting a product');
+        }
+      }
+      return value;
+    })
+    
+    
 
     .required(),
 };

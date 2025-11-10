@@ -6,6 +6,9 @@ const { celebrate } = require('celebrate');
 const multer = require('multer');
 
 const upload = multer();
+const checkAuth = require('../../middleware/check-auth');
+
+reviewRouter.use(checkAuth);
 
 const API = {
   INFO: '/info',
