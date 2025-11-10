@@ -4,6 +4,9 @@ const productController = require('../../controllers/products/product.controller
 const ProductSchema = require('../../request-schemas/product.schema');
 const { celebrate } = require('celebrate');
 const cloudinaryUpload = require('../../config/cloudinaryUpload');
+const checkAuth = require('../../middleware/check-auth');
+
+productRouter.use(checkAuth);
 
 const API = {
   ADD_PRODUCT: '/add',

@@ -6,6 +6,10 @@ const { celebrate } = require('celebrate');
 const createUpload = require('../../config/multer.config');
 const uploadBrand = createUpload('brands');
 const cloudinaryUpload = require('../../config/cloudinaryUpload');
+const checkAuth = require('../../middleware/check-auth');
+
+brandRouter.use(checkAuth);
+
 const API = {
   INFO: '/info',
   ADD_BRAND: '/add',
