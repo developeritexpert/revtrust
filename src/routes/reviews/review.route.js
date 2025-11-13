@@ -18,6 +18,7 @@ const API = {
   UPDATE_REVIEW: '/update/:id',
   DELETE_REVIEW: '/delete/:id',
   STATUS_REVIEW: '/:id/status',
+  RECALCULATE_REVIEW:'/recalculate-averages'
 };
 
 reviewRouter.get(API.INFO, reviewController.getReviewApiInfo);
@@ -42,5 +43,7 @@ reviewRouter.put(
 );
 
 reviewRouter.delete(API.DELETE_REVIEW, celebrate(ReviewSchema.idParam), reviewController.deleteReview);
+
+reviewRouter.put(API.RECALCULATE_REVIEW, reviewController.recalculateAverages);
 
 module.exports = reviewRouter;
