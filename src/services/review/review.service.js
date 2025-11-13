@@ -2,6 +2,7 @@ const Review = require('../../models/review.model');
 const { ErrorHandler } = require('../../utils/error-handler');
 const Brand = require('../../models/brand.model');
 const Product = require('../../models/product.model');
+const mongoose = require('mongoose');
 
 const createReview = async (data) => {
   try {
@@ -27,39 +28,137 @@ const createReview = async (data) => {
 //     pagination: { total, page, limit, totalPages: Math.ceil(total / limit) },
 //   };
 // };
+// const getAllReviews = async (page, limit, filters, sortBy = 'createdAt', order = 'desc') => {
+//   const skip = (page - 1) * limit;
+//   const sortOrder = order === 'asc' ? 1 : -1;
+//   const sort = {};
+//   sort[sortBy] = sortOrder;
+
+//   const [reviews, total] = await Promise.all([
+//     Review.find(filters)
+//       .sort(sort)
+//       .skip(skip)
+//       .limit(limit)
+//       .populate({
+//         path: 'productId',
+//         select: 'name handle image price status',
+//       })
+//       .populate({
+//         path: 'brandId',
+//         select: 'name logo status',
+//       }),
+//     Review.countDocuments(filters),
+//   ]);
+
+//   return {
+//     data: reviews,
+//     pagination: { total, page, limit, totalPages: Math.ceil(total / limit) },
+//   };
+// };
 const getAllReviews = async (page, limit, filters, sortBy = 'createdAt', order = 'desc') => {
   const skip = (page - 1) * limit;
   const sortOrder = order === 'asc' ? 1 : -1;
-  const sort = {};
-  sort[sortBy] = sortOrder;
 
-  const [reviews, total] = await Promise.all([
-    Review.find(filters)
-      .sort(sort)
-      .skip(skip)
-      .limit(limit)
-      .populate({
-        path: 'productId',
-        select: 'name handle image price status',
-      })
-      .populate({
-        path: 'brandId',
-        select: 'name logo status',
-      }),
-    Review.countDocuments(filters),
+  const results = await Review.aggregate([
+    { $match: filters },
+
+    // Sort
+    { $sort: { [sortBy]: sortOrder } },
+
+    // Pagination
+    { $skip: skip },
+    { $limit: limit },
+
+    // Add total reviews by same email
+    {
+      $lookup: {
+        from: "reviews",
+        let: { email: "$email" },
+        pipeline: [
+          {
+            $match: {
+              $expr: { $eq: ["$email", "$$email"] },
+              status: "ACTIVE"
+            }
+          },
+          { $count: "totalReviewsByEmail" }
+        ],
+        as: "emailStats"
+      }
+    },
+
+    // Extract the count
+    {
+      $addFields: {
+        totalReviewsByEmail: {
+          $ifNull: [{ $arrayElemAt: ["$emailStats.totalReviewsByEmail", 0] }, 0]
+        }
+      }
+    },
+
+    // Remove temp field
+    { $project: { emailStats: 0 } }
+  ]);
+
+  const total = await Review.countDocuments(filters);
+
+  // Populate product + brand AFTER aggregation
+  const populatedResults = await Review.populate(results, [
+    {
+      path: "productId",
+      select: "name handle image price status"
+    },
+    {
+      path: "brandId",
+      select: "name logo status"
+    }
   ]);
 
   return {
-    data: reviews,
+    data: populatedResults,
     pagination: { total, page, limit, totalPages: Math.ceil(total / limit) },
   };
 };
 
 
+// const getReviewById = async (id) => {
+//   const review = await Review.findById(id);
+//   if (!review) throw new ErrorHandler(404, 'Review not found');
+//   return review;
+// };
 const getReviewById = async (id) => {
-  const review = await Review.findById(id);
-  if (!review) throw new ErrorHandler(404, 'Review not found');
-  return review;
+  const result = await Review.aggregate([
+    { $match: { _id: new mongoose.Types.ObjectId(id) } },
+
+    {
+      $lookup: {
+        from: "reviews",
+        let: { email: "$email" },
+        pipeline: [
+          {
+            $match: {
+              $expr: { $eq: ["$email", "$$email"] },
+              status: "ACTIVE"
+            }
+          },
+          { $count: "totalReviewsByEmail" }
+        ],
+        as: "emailStats"
+      }
+    },
+    {
+      $addFields: {
+        totalReviewsByEmail: {
+          $ifNull: [{ $arrayElemAt: ["$emailStats.totalReviewsByEmail", 0] }, 0]
+        }
+      }
+    },
+    { $project: { emailStats: 0 } }
+  ]);
+
+  if (!result.length) throw new ErrorHandler(404, "Review not found");
+
+  return result[0];
 };
 
 const updateReview = async (id, data) => {
