@@ -76,115 +76,130 @@ reviewSchema.virtual('reviewAverage').get(function () {
 /**
  * ✅ UPDATED: Adjust totalReviews, totalRating, AND ratingDistribution
  */
-async function adjustReviewStats(doc, increment, ratingDiff = 0) {
+async function adjustReviewStats(doc) {
   if (!doc) return;
 
-  const ratings = [
-    doc.product_store_rating,
-    doc.seller_rating,
-    doc.product_quality_rating,
-    doc.product_price_rating,
-    doc.issue_handling_rating
-  ].filter(r => typeof r === 'number' && r > 0);
-
-  const reviewAverage = ratings.length > 0
-    ? ratings.reduce((sum, r) => sum + r, 0) / ratings.length
-    : 0;
-
-  // ✅ Calculate rounded rating for distribution
-  const roundedRating = Math.round(reviewAverage);
-
-  const update = {
-    $inc: {
-      totalReviews: increment,
-      totalRating: ratingDiff || reviewAverage * increment,
-    },
-  };
-
-  // ✅ Update rating distribution
-  if (increment !== 0 && roundedRating >= 1 && roundedRating <= 5) {
-    const distributionKey = `ratingDistribution.${roundedRating}`;
-    update.$inc[distributionKey] = increment;
-  }
-
-if (doc.reviewType === 'Product') {
-  const Product = mongoose.model('Product');
-  const result = await Product.findByIdAndUpdate(doc.productId, update, { new: true });
-
-  console.log('📊 Product rating updated:', {
-    reviewAverage: reviewAverage.toFixed(1),
-    roundedRating,
-    totalRating: result?.totalRating,
-    totalReviews: result?.totalReviews,
-    ratingDistribution: result?.ratingDistribution
-  });
-
-  // ✅ Also update Brand (since Product belongs to a Brand)
-  const Brand = mongoose.model('Brand');
-  await Brand.findByIdAndUpdate(doc.brandId, update);
-}
-
-if (doc.reviewType === 'Brand') {
-  const Brand = mongoose.model('Brand');
-
-  // Fetch all active reviews for this brand
   const Review = mongoose.model('Review');
-  const reviews = await Review.find({
-    brandId: doc.brandId,
-    reviewType: 'Brand',
-    status: 'ACTIVE',
-  });
+  const Product = mongoose.model('Product');
+  const Brand = mongoose.model('Brand');
 
-  // Recalculate from all reviews
-  const ratingCounts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
-  let totalRatingSum = 0;
-  let totalRatingCount = 0;
+  // --- For PRODUCT reviews ---
+  if (doc.reviewType === 'Product' && doc.productId) {
+    const reviews = await Review.find({
+      productId: doc.productId,
+      status: 'ACTIVE',
+    });
 
-  reviews.forEach(review => {
-    const ratings = [
-      review.product_store_rating,
-      review.seller_rating,
-      review.product_quality_rating,
-      review.product_price_rating,
-      review.issue_handling_rating
-    ].filter(r => typeof r === 'number' && r > 0);
+    const ratingCounts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+    let totalRatingSum = 0;
+    let totalRatingCount = 0;
 
-    const reviewAvg = ratings.length ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0;
-    const rounded = Math.round(reviewAvg);
-    if (rounded >= 1 && rounded <= 5) ratingCounts[rounded]++;
-    if (reviewAvg > 0) {
-      totalRatingSum += reviewAvg;
-      totalRatingCount++;
-    }
-  });
+    reviews.forEach((review) => {
+      const ratings = [
+        review.product_store_rating,
+        review.seller_rating,
+        review.product_quality_rating,
+        review.product_price_rating,
+        review.issue_handling_rating,
+      ].filter((r) => typeof r === 'number' && r > 0);
 
-  const averageRating = totalRatingCount ? totalRatingSum / totalRatingCount : 0;
-  const roundedOverall = Number(averageRating.toFixed(1));
-  const roundedRating = Math.round(averageRating);
+      const reviewAverage = ratings.length
+        ? ratings.reduce((sum, r) => sum + r, 0) / ratings.length
+        : 0;
 
-  await Brand.findByIdAndUpdate(
-    doc.brandId,
-    {
-      totalReviews: totalRatingCount,
+      if (reviewAverage > 0) {
+        const rounded = Math.round(reviewAverage);
+        if (rounded >= 1 && rounded <= 5) ratingCounts[rounded]++;
+        totalRatingSum += reviewAverage;
+        totalRatingCount++;
+      }
+    });
+
+    const totalReviews = totalRatingCount;
+    const overallRating = totalRatingCount ? totalRatingSum / totalRatingCount : 0;
+    const roundedOverall = Number(overallRating.toFixed(1));
+    const roundedRating = Math.round(overallRating);
+
+    await Product.findByIdAndUpdate(doc.productId, {
+      totalReviews,
       totalRating: totalRatingSum,
       ratingDistribution: ratingCounts,
-      averageRating,           // ✅ main average field
-      roundedOverall,          // ✅ one-decimal version
-      roundedRating            // ✅ whole number for stars
-    },
-    { new: true }
-  );
+      averageRating: overallRating,
+      roundedOverall,
+      roundedRating,
+    });
 
-  console.log('✅ Brand stats recalculated:', {
-    averageRating,
-    roundedOverall,
-    roundedRating,
-    ratingCounts
-  });
+    console.log('✅ Product recalculated:', {
+      productId: doc.productId,
+      overallRating,
+      roundedOverall,
+      roundedRating,
+      ratingCounts,
+    });
+
+    // Also update parent Brand
+    if (doc.brandId)
+      await adjustReviewStats({ reviewType: 'Brand', brandId: doc.brandId });
+  }
+
+  // --- For BRAND reviews ---
+  if (doc.reviewType === 'Brand' && doc.brandId) {
+    const reviews = await Review.find({
+      brandId: doc.brandId,
+      reviewType: 'Brand',
+      status: 'ACTIVE',
+    });
+
+    const ratingCounts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+    let totalRatingSum = 0;
+    let totalRatingCount = 0;
+
+    reviews.forEach((review) => {
+      const ratings = [
+        review.product_store_rating,
+        review.seller_rating,
+        review.product_quality_rating,
+        review.product_price_rating,
+        review.issue_handling_rating,
+      ].filter((r) => typeof r === 'number' && r > 0);
+
+      const reviewAverage = ratings.length
+        ? ratings.reduce((sum, r) => sum + r, 0) / ratings.length
+        : 0;
+
+      if (reviewAverage > 0) {
+        const rounded = Math.round(reviewAverage);
+        if (rounded >= 1 && rounded <= 5) ratingCounts[rounded]++;
+        totalRatingSum += reviewAverage;
+        totalRatingCount++;
+      }
+    });
+
+    const totalReviews = totalRatingCount;
+    const overallRating = totalRatingCount ? totalRatingSum / totalRatingCount : 0;
+    const roundedOverall = Number(overallRating.toFixed(1));
+    const roundedRating = Math.round(overallRating);
+
+    await Brand.findByIdAndUpdate(doc.brandId, {
+      totalReviews,
+      totalRating: totalRatingSum,
+      ratingDistribution: ratingCounts,
+      averageRating: overallRating,
+      roundedOverall,
+      roundedRating,
+    });
+
+    console.log('✅ Brand recalculated:', {
+      brandId: doc.brandId,
+      overallRating,
+      roundedOverall,
+      roundedRating,
+      ratingCounts,
+    });
+  }
 }
 
 
-}
 
 function calculateReviewAverage(doc) {
   const ratings = [
