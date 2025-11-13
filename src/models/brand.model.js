@@ -68,13 +68,15 @@ const brandSchema = new mongoose.Schema(
 
 // ✅ PRIMARY: Virtual for average rating with 1 decimal place
 brandSchema.virtual('averageRating').get(function () {
-  return this._averageRating || 0;
+  if (!this.totalReviews || this.totalReviews === 0) return 0;
+  return parseFloat((this.totalRating / this.totalReviews).toFixed(1));
 });
 
+// ✅ ALIAS: For backward compatibility
 brandSchema.virtual('roundedOverall').get(function () {
-  return this._averageRating || 0;
+  if (!this.totalReviews || this.totalReviews === 0) return 0;
+  return parseFloat((this.totalRating / this.totalReviews).toFixed(1));
 });
-
 
 // ✅ Rounded rating (whole number)
 brandSchema.virtual('roundedRating').get(function () {
