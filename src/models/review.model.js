@@ -180,11 +180,15 @@ async function adjustReviewStats(doc) {
     const roundedOverall = Number(overallRating.toFixed(1));
     const roundedRating = Math.round(overallRating);
 
+  
+
+
     await Brand.findByIdAndUpdate(doc.brandId, {
       totalReviews,
       totalRating: totalRatingSum,
       ratingDistribution: ratingCounts,
       averageRating: overallRating,
+      _averageRating: roundedOverall ,
       roundedOverall,
       roundedRating,
     });
