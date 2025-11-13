@@ -94,7 +94,7 @@ const getAllBrands = async (page = 1, limit = 20, filters = {}) => {
 };
 
 
-const getBrandByIdWithReview = async (
+const getBrandById = async (
   id,
   page = 1,
   limit = 10,
@@ -204,7 +204,7 @@ const deleteBrand = async (id) => {
 module.exports = {
   createBrand,
   getAllBrands,
-  getBrandByIdWithReview,
+  getBrandById,
   updateBrand,
   deleteBrand
 };
