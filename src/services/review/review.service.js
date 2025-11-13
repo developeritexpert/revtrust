@@ -1,5 +1,7 @@
 const Review = require('../../models/review.model');
 const { ErrorHandler } = require('../../utils/error-handler');
+const Brand = require('../../models/brand.model');
+const Product = require('../../models/product.model');
 
 const createReview = async (data) => {
   try {
@@ -77,6 +79,121 @@ const deleteReview = async (id) => {
   if (!review) throw new ErrorHandler(404, 'Review not found');
 };
 
+
+const recalculateAverages = async () => {
+  try {
+    console.log('🧮 Starting recalculation of averages...');
+    
+    // --- BRAND AVERAGES ---
+    const brands = await Brand.find({ status: 'ACTIVE' });
+    console.log(`📦 Found ${brands.length} active brands to process.`);
+    let brandUpdatedCount = 0;
+    let brandsWithoutReviews = 0;
+
+    for (const brand of brands) {
+      const reviews = await Review.find({ brandId: brand._id, status: 'ACTIVE' });
+      if (reviews.length === 0) {
+        console.log(`⚠️ Skipped brand "${brand.name}" (no active reviews).`);
+        brandsWithoutReviews++;
+        continue;
+      }
+
+      const averages = reviews.map(r => {
+        const ratings = [
+          r.product_store_rating,
+          r.seller_rating,
+          r.product_quality_rating,
+          r.product_price_rating,
+          r.issue_handling_rating,
+        ].filter(v => typeof v === 'number' && v > 0);
+        const sum = ratings.reduce((a, b) => a + b, 0);
+        return ratings.length ? sum / ratings.length : 0;
+      });
+
+      const overallAvg = averages.reduce((a, b) => a + b, 0) / averages.length;
+      const roundedOverall = Math.round(overallAvg * 10) / 10;
+      const ratingCounts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+
+      averages.forEach(avg => {
+        const star = Math.round(avg);
+        if (ratingCounts[star] !== undefined) ratingCounts[star]++;
+      });
+
+      await Brand.findByIdAndUpdate(brand._id, {
+        averageRating: overallAvg,
+        roundedOverall,
+        ratingDistribution: ratingCounts,
+      });
+
+      console.log(`✅ Updated Brand: "${brand.name}" | New Avg: ${roundedOverall}`);
+      brandUpdatedCount++;
+    }
+
+    console.log(`\n✅ Brand Summary → Updated: ${brandUpdatedCount}, Skipped (no reviews): ${brandsWithoutReviews}`);
+
+    // --- PRODUCT AVERAGES ---
+    const products = await Product.find({ status: 'ACTIVE' });
+    console.log(`\n🛍️ Found ${products.length} active products to process.`);
+    let productUpdatedCount = 0;
+    let productsWithoutReviews = 0;
+
+    for (const product of products) {
+      const reviews = await Review.find({ productId: product._id, status: 'ACTIVE' });
+      if (reviews.length === 0) {
+        console.log(`⚠️ Skipped product "${product.name}" (no active reviews).`);
+        productsWithoutReviews++;
+        continue;
+      }
+
+      const averages = reviews.map(r => {
+        const ratings = [
+          r.product_store_rating,
+          r.seller_rating,
+          r.product_quality_rating,
+          r.product_price_rating,
+          r.issue_handling_rating,
+        ].filter(v => typeof v === 'number' && v > 0);
+        const sum = ratings.reduce((a, b) => a + b, 0);
+        return ratings.length ? sum / ratings.length : 0;
+      });
+
+      const overallAvg = averages.reduce((a, b) => a + b, 0) / averages.length;
+      const roundedOverall = Math.round(overallAvg * 10) / 10;
+      const ratingCounts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+
+      averages.forEach(avg => {
+        const star = Math.round(avg);
+        if (ratingCounts[star] !== undefined) ratingCounts[star]++;
+      });
+
+      await Product.findByIdAndUpdate(product._id, {
+        averageRating: overallAvg,
+        roundedOverall,
+        ratingDistribution: ratingCounts,
+      });
+
+      console.log(`✅ Updated Product: "${product.name}" | New Avg: ${roundedOverall}`);
+      productUpdatedCount++;
+    }
+
+    console.log(`\n✅ Product Summary → Updated: ${productUpdatedCount}, Skipped (no reviews): ${productsWithoutReviews}`);
+    console.log('\n🎯 All recalculations completed successfully.\n');
+
+    return {
+      success: true,
+      brandsUpdated: brandUpdatedCount,
+      productsUpdated: productUpdatedCount,
+      brandsSkipped: brandsWithoutReviews,
+      productsSkipped: productsWithoutReviews,
+    };
+  } catch (err) {
+    console.error('❌ Error during recalculation:', err);
+    throw new ErrorHandler(500, 'Failed to recalculate averages');
+  }
+};
+
+
+
 module.exports = {
   createReview,
   getAllReviews,
@@ -84,4 +201,5 @@ module.exports = {
   updateReview,
   deleteReview,
   updateStateReview,
+  recalculateAverages
 };

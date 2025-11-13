@@ -131,10 +131,19 @@ const updateReview = {
       shopifyProductId: Joi.string().trim().optional().allow('', null).messages({
         'string.base': 'Shopify ID must be a string',
       }),
-      productId: Joi.string()
-      .custom(objectIdValidation)
-      .allow('', null)
-      .optional(), // ✅ changed
+    productId: Joi.string()
+    .allow('', null)
+    .trim()
+    .empty('')        // Treat empty string as missing
+    .default(null)    // Replace it with null
+    .custom(objectIdValidation)
+    .optional(),
+
+      // productId: Joi.alternatives().try(
+      //   Joi.valid(null, ''), // allow empty or null
+      //   Joi.string().trim().custom(objectIdValidation) // validate only if not empty
+      // ).optional(),
+
 
       brandId: Joi.string()
       .custom(objectIdValidation)

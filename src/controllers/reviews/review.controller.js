@@ -111,6 +111,13 @@ const getReviewApiInfo = (req, res) => {
     data: apiInfo,
   });
 };
+
+const recalculateAverages = wrapAsync(async (req, res) => {
+  const result = await ReviewServices.recalculateAverages();
+  sendResponse(res, result, 'All averages recalculated successfully', 200);
+});
+
+
 module.exports = {
   createReview,
   getAllReviews,
@@ -119,4 +126,5 @@ module.exports = {
   deleteReview,
   getReviewApiInfo,
   updateStateReview,
+  recalculateAverages,
 };
