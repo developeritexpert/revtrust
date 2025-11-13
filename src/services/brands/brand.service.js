@@ -77,7 +77,27 @@ const getAllBrands = async (page = 1, limit = 20, filters = {}) => {
     { $skip: skip },
     { $limit: limit },
 
-    { $project: { reviewStats: 0 } }
+    // { $project: { reviewStats: 0 } }
+    {
+      $project: {
+        _id: 1,
+        name: 1,
+        email: 1,
+        logoUrl: 1,
+        websiteUrl: 1,
+        phoneNumber: 1,
+        description: 1,
+        status: 1,
+        postcode: 1,
+        createdAt: 1,
+        updatedAt: 1,
+
+        totalReviews: 1,
+        averageRating: 1,
+        ratingDistribution: 1
+      }
+    }
+
   ]);
 
   const total = await Brand.countDocuments(filters);
