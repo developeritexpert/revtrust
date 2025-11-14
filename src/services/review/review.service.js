@@ -59,17 +59,20 @@ const getAllReviews = async (page, limit, filters, sortBy = 'createdAt', order =
   const skip = (page - 1) * limit;
   const sortOrder = order === 'asc' ? 1 : -1;
 
+  // FIX: Convert brandId & productId to ObjectId
+  if (filters.brandId) {
+    filters.brandId = new mongoose.Types.ObjectId(filters.brandId);
+  }
+  if (filters.productId) {
+    filters.productId = new mongoose.Types.ObjectId(filters.productId);
+  }
+
   const results = await Review.aggregate([
     { $match: filters },
-
-    // Sort
     { $sort: { [sortBy]: sortOrder } },
-
-    // Pagination
     { $skip: skip },
     { $limit: limit },
 
-    // Add total reviews by same email
     {
       $lookup: {
         from: "reviews",
@@ -87,7 +90,6 @@ const getAllReviews = async (page, limit, filters, sortBy = 'createdAt', order =
       }
     },
 
-    // Extract the count
     {
       $addFields: {
         totalReviewsByEmail: {
@@ -96,13 +98,11 @@ const getAllReviews = async (page, limit, filters, sortBy = 'createdAt', order =
       }
     },
 
-    // Remove temp field
     { $project: { emailStats: 0 } }
   ]);
 
   const total = await Review.countDocuments(filters);
 
-  // Populate product + brand AFTER aggregation
   const populatedResults = await Review.populate(results, [
     {
       path: "productId",
@@ -119,6 +119,7 @@ const getAllReviews = async (page, limit, filters, sortBy = 'createdAt', order =
     pagination: { total, page, limit, totalPages: Math.ceil(total / limit) },
   };
 };
+
 
 
 // const getReviewById = async (id) => {
