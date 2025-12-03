@@ -4,17 +4,17 @@ const CONSTANT_ENUM = require('../helper/constant-enums');
 const brandSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true, unique: true },
-    email: { type: String, required: true, trim: true, lowercase: true, unique: true },
+    // email: { type: String, required: true, trim: true, lowercase: true, unique: true },
     logoUrl: { type: String, trim: true },
     websiteUrl: { type: String, trim: true },
-    phoneNumber: { type: String, trim: true },
+    // phoneNumber: { type: String, trim: true },
     description: { type: String, trim: true },
     status: {
       type: String,
       enum: Object.values(CONSTANT_ENUM.PRODUCT_STATUS),
       default: CONSTANT_ENUM.PRODUCT_STATUS.ACTIVE,
     },
-    postcode: { type: String, required: true, trim: true },
+    // postcode: { type: String, required: true, trim: true },
   },
   { timestamps: true }
 );

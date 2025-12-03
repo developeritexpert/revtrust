@@ -30,7 +30,9 @@ function extractFilters(query, allowedFilters, additionalFilters = {}) {
 
 function buildBrandFilters(queryParams) {
   const filters = {};
-  const textFields = ['name', 'email', 'phoneNumber', 'websiteUrl', 'postcode'];
+  // const textFields = ['name', 'email', 'phoneNumber', 'websiteUrl', 'postcode'];
+  const textFields = ['name', 'websiteUrl'];
+
 
   for (const key of textFields) {
     if (queryParams[key]) {
