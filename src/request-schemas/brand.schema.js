@@ -17,11 +17,11 @@ const addBrand = {
         'string.min': 'Name must be at least 2 characters',
         'any.required': 'Name is required',
       }),
-      email: Joi.string().trim().email().required().messages({
-        'string.email': 'Email must be a valid email address',
-        'any.required': 'Email is required',
-      }),
-      phoneNumber: Joi.string().trim().allow('', null).optional(),
+      // email: Joi.string().trim().email().required().messages({
+      //   'string.email': 'Email must be a valid email address',
+      //   'any.required': 'Email is required',
+      // }),
+      // phoneNumber: Joi.string().trim().allow('', null).optional(),
       websiteUrl: Joi.string().trim().uri().required().messages({
         'string.uri': 'Website URL must be a valid URL',
         'any.required': 'Website URL is required',
@@ -30,10 +30,10 @@ const addBrand = {
       status: Joi.string().valid('ACTIVE', 'INACTIVE').default('ACTIVE').messages({
         'any.only': 'Status must be either "ACTIVE" or "INACTIVE"',
       }),
-      postcode: Joi.string().trim().required().messages({
-        'string.empty': 'Postcode is required',
-        'any.required': 'Postcode is required',
-      }),
+      // postcode: Joi.string().trim().required().messages({
+      //   'string.empty': 'Postcode is required',
+      //   'any.required': 'Postcode is required',
+      // }),
       logoUrl: Joi.string().trim().uri().optional().allow('').messages({
         'string.uri': 'Image must be a valid URL',
       }),
@@ -48,10 +48,10 @@ const updateBrand = {
         'string.base': 'Name must be a string',
         'string.min': 'Name must be at least 2 characters',
       }),
-      email: Joi.string().trim().email().optional().messages({
-        'string.email': 'Email must be a valid email address',
-      }),
-      phoneNumber: Joi.string().trim().allow('', null).optional(),
+      // email: Joi.string().trim().email().optional().messages({
+      //   'string.email': 'Email must be a valid email address',
+      // }),
+      // phoneNumber: Joi.string().trim().allow('', null).optional(),
       websiteUrl: Joi.string().trim().uri().optional().messages({
         'string.uri': 'Website URL must be a valid URL',
       }),
@@ -62,7 +62,7 @@ const updateBrand = {
       logoUrl: Joi.string().trim().uri().optional().allow('').messages({
         'string.uri': 'Image must be a valid URL',
       }),
-      postcode: Joi.string().trim().optional(),
+      // postcode: Joi.string().trim().optional(),
     })
     .required(),
 };
